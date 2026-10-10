@@ -18,6 +18,8 @@ from .http import get_json
 
 ROUTES_URL = "https://router.hereapi.com/v8/routes"
 AUTOSUGGEST_URL = "https://autosuggest.search.hereapi.com/v1/autosuggest"
+# Autosuggest requires a search position; bias to the centre of the contiguous US (results stay US/Canada).
+US_CENTER = "39.83,-98.58"
 
 
 @dataclass(frozen=True)
@@ -57,7 +59,10 @@ def fetch_truck_routes(
         "departureTime": departure.isoformat(timespec="seconds"),
         "alternatives": alternatives,
         "return": "polyline,summary",
-        "spans": "duration,length",
+        # Spans only split where a requested attribute changes; dynamicSpeedInfo splits wherever the
+        # expected speed changes (~600 spans on a 1,000 mi trip), giving per-stretch durations for ETAs.
+        # With only duration/length HERE returns a single span, i.e. one average speed for the whole trip.
+        "spans": "duration,length,dynamicSpeedInfo",
         "vehicle[grossWeight]": gross_weight_kg,
         "units": "metric",
         "apiKey": _api_key(),
@@ -111,6 +116,7 @@ def autosuggest(query: str, limit: int = 6) -> list[Place]:
         raise GeocodingUnavailable("HERE_API_KEY is not configured")
     params = {
         "q": query,
+        "at": US_CENTER,
         "in": "countryCode:USA,CAN",
         "limit": limit,
         "lang": "en-US",

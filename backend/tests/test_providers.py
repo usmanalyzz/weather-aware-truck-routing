@@ -35,7 +35,7 @@ def test_fetch_truck_routes_sends_truck_params_and_parses():
     assert params["transportMode"] == "truck"
     assert params["vehicle[grossWeight]"] == "34927"
     assert params["alternatives"] == "5"
-    assert params["spans"] == "duration,length"
+    assert params["spans"] == "duration,length,dynamicSpeedInfo"
     assert params["departureTime"] == "2026-10-11T06:00:00+00:00"
     assert len(routes) == 1
     assert routes[0].coords == coords
@@ -146,7 +146,7 @@ def test_missing_api_key(settings):
 
 @respx.mock
 def test_autosuggest_keeps_only_items_with_coordinates():
-    respx.get(here.AUTOSUGGEST_URL).mock(
+    route = respx.get(here.AUTOSUGGEST_URL).mock(
         return_value=httpx.Response(
             200,
             json={
@@ -165,6 +165,9 @@ def test_autosuggest_keeps_only_items_with_coordinates():
     places = here.autosuggest("chic")
 
     assert places == [here.Place(label="Chicago, IL, United States", lat=41.88, lon=-87.63)]
+    params = route.calls.last.request.url.params
+    assert params["at"] == here.US_CENTER  # HERE rejects autosuggest without a search position
+    assert params["in"] == "countryCode:USA,CAN"
 
 
 # --- Open-Meteo ------------------------------------------------------------------------------
