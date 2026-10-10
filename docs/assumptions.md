@@ -59,3 +59,19 @@ Routes are compared lexicographically using a strict tuple sort, with no weighte
 Miles are compared at 0.1 mi and average risk at 0.01, so floating-point noise can't decide a ranking. Full ties
 keep the routing provider's order. Each runner-up gets a one-line rationale naming the first criterion that
 separated it from the winner.
+
+## Routing & data quality — `backend/providers/`, `backend/routing/dedupe.py`
+
+* **Truck routing:** HERE Routing v8 with `transportMode=truck`. Gross weight sent to HERE = tractor-trailer tare
+  (35,000 lb, `TRUCK_TARE_WEIGHT_LB`) + the entered load, converted to kg. The risk rules use the entered load directly.
+* **Three genuine routes:** we request 5 alternatives and keep up to 3 that are actually different. Two routes count as
+  the same road when ≥ 90 % of each lies within 0.5 mi of the other. If fewer than 3 distinct routes exist, the app shows
+  what it has and says so; it never invents routes.
+* **Distances** come from the decoded route geometry, so checkpoint miles and route distance always agree.
+  The map gets a simplified copy of each line, but every calculation uses the full-resolution geometry.
+* **Forecast requests:** points are snapped to a 0.05° grid (~3.5 mi, finer than the HRRR/GFS model grids), batched
+  50 per request, and cached per cell + exact hour window + current hour. A forecast is never reused for a different time.
+* **Forecast horizon:** Open-Meteo rejects hours past its ~16-day horizon, so requests are clamped. Checkpoints beyond
+  the horizon are Unknown. Departures are limited to the next 13 days so the 48 h heatmap and the trip itself stay inside.
+* **Failures:** a failed weather batch marks only its checkpoints Unknown and adds a notice. Provider timeouts and
+  outages return a clear error (504/502) without internal details.

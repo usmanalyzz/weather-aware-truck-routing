@@ -63,7 +63,12 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "UNAUTHENTICATED_USER": None,
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {"anon": os.environ.get("API_THROTTLE_RATE", "60/min")},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.environ.get("API_THROTTLE_RATE", "120/min"),
+        "plan": os.environ.get("PLAN_THROTTLE_RATE", "20/min"),
+        "suggest": os.environ.get("SUGGEST_THROTTLE_RATE", "120/min"),
+    },
+    "EXCEPTION_HANDLER": "trips.exceptions.api_exception_handler",
 }
 
 CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
