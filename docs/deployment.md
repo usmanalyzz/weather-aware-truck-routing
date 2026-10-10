@@ -1,4 +1,31 @@
-# Deployment: Render (Django API) + Vercel (React)
+# Deployment
+
+Two supported setups:
+* **A. Vercel for both** (no credit card needed): Django runs as a Vercel Python function.
+* **B. Render (Django) + Vercel (React)**: Render's free plan may ask for card verification.
+
+## A. Django API on Vercel (no card)
+
+1. Vercel → **Add New → Project** → import `usmanalyzz/weather-aware-truck-routing` again (a second project).
+2. **Project Name:** `weather-truck-routing-api`. **Root Directory:** `backend`. **Application Preset:** *Other*.
+   `backend/vercel.json` routes every path to `api/index.py` (Django) and allows 60 s per request.
+3. **Environment Variables:**
+
+   | Key | Value |
+   |---|---|
+   | `DJANGO_SETTINGS_MODULE` | `config.settings.prod` |
+   | `DJANGO_SECRET_KEY` | a long random string (e.g. `python3 -c "import secrets;print(secrets.token_urlsafe(50))"`) |
+   | `ALLOWED_HOSTS` | `.vercel.app` |
+   | `HERE_API_KEY` | your HERE key |
+   | `CORS_ALLOWED_ORIGINS` | your frontend URL, e.g. `https://weather-aware-truck-routing.vercel.app` |
+4. **Deploy**, then open `https://<api-project>.vercel.app/api/health` → `{"status":"ok"}`.
+5. In the **frontend** project, set `VITE_API_BASE_URL=https://<api-project>.vercel.app/api` and **Redeploy**.
+
+> Serverless trade-off: the weather cache and rate budget live in memory per warm function instance. Vercel reuses
+> warm instances for normal traffic, so they work well for a demo. Cold instances start empty, and Open-Meteo "busy"
+> handling remains the safety net. Unlike Render's free plan, nothing sleeps for 30–60 s.
+
+## B. Render (Django API) + Vercel (React)
 
 Do the backend first, because the frontend needs its URL.
 

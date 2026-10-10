@@ -223,7 +223,8 @@ cd frontend && npm run lint && npm test && npm run build   # 71 tests, typecheck
 
 ## Deployment
 
-Backend on **Render** (`render.yaml` blueprint), frontend on **Vercel** (`frontend/vercel.json`).
+Frontend on **Vercel** (`frontend/vercel.json`). Backend on **Vercel** as a Python function (`backend/vercel.json`,
+`backend/api/index.py`, no credit card) or on **Render** (`render.yaml`).
 Step-by-step instructions: **[docs/deployment.md](docs/deployment.md)**.
 
 ## Known limitations
