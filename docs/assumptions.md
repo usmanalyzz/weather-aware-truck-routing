@@ -75,3 +75,19 @@ separated it from the winner.
   the horizon are Unknown. Departures are limited to the next 13 days so the 48 h heatmap and the trip itself stay inside.
 * **Failures:** a failed weather batch marks only its checkpoints Unknown and adds a notice. Provider timeouts and
   outages return a clear error (504/502) without internal details.
+
+## Corridor heatmap — `backend/routing/corridor.py`, `backend/trips/services/heatmap.py`
+
+* **Grid:** points on a regular grid in **miles** (15 mi spacing, widened automatically to stay ≤ `HEATMAP_MAX_POINTS`)
+  within 40 mi of any route. Because every point covers the same area, heatmap colour reflects forecast values,
+  not point density.
+* **Values:** for each point and each hour 0–48 after departure: wind (mph), rain and snow (in/hr) and the risk level
+  from the **same rules and load** as the checkpoints. The map blends visually between points. That blending is
+  interpolation, not an observation at every location, and the legend says so.
+* **Timeline:** the slider is hours after departure (hour 0 = departure rounded down to the hour), with the absolute
+  time shown. Hours past the provider's horizon are `null` and drawn blank, never filled in.
+* **Reuse:** the heatmap takes the same request as the plan and reuses the cached plan, so no extra routing call is made.
+  Results are cached for 10 minutes per trip, and corridor forecasts per cell for 1 hour.
+* **Quota caveat:** Open-Meteo's docs don't say whether a multi-location request counts as one call or one per location.
+  Assuming the worst case, an uncached heatmap costs about 550 of the free tier's 10,000 daily calls. If the provider throttles,
+  only the overlay fails; routes, risk and the recommendation are unaffected.

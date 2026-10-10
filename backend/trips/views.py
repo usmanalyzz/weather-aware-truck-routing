@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from providers import here
 
 from .serializers import SuggestQuerySerializer, TripPlanRequestSerializer
+from .services.heatmap import heatmap_cached
 from .services.plan_trip import plan_trip_cached
 
 
@@ -24,6 +25,18 @@ class TripPlanView(APIView):
         serializer = TripPlanRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(plan_trip_cached(serializer.to_trip_request()))
+
+
+class TripHeatmapView(APIView):
+    """Corridor forecast grid for the same trip request as /trips/plan (reuses the cached plan)."""
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "heatmap"
+
+    def post(self, request: Request) -> Response:
+        serializer = TripPlanRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(heatmap_cached(serializer.to_trip_request()))
 
 
 class GeocodeSuggestView(APIView):

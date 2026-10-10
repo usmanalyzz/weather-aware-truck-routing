@@ -23,6 +23,14 @@ from dataclasses import dataclass
 
 from .levels import RiskLevel
 
+# Lower bounds of Moderate, High, Severe and No Travel, published to the UI for legends.
+# The classify_* functions below are the source of truth; tests keep these in sync with them.
+THRESHOLDS = {
+    "wind_mph": {"values": [25, 35, 45, 55], "no_travel_inclusive": True},
+    "rain_in_hr": {"values": [0.10, 0.25, 0.50, 1.00], "no_travel_inclusive": False},
+    "snow_in_hr": {"values": [0.5, 1.0, 2.0, 3.0], "no_travel_inclusive": False},
+}
+
 
 @dataclass(frozen=True)
 class Conditions:

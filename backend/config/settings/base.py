@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
@@ -66,6 +67,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": os.environ.get("API_THROTTLE_RATE", "120/min"),
         "plan": os.environ.get("PLAN_THROTTLE_RATE", "20/min"),
+        "heatmap": os.environ.get("HEATMAP_THROTTLE_RATE", "20/min"),
         "suggest": os.environ.get("SUGGEST_THROTTLE_RATE", "120/min"),
     },
     "EXCEPTION_HANDLER": "trips.exceptions.api_exception_handler",
@@ -76,10 +78,13 @@ CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 # Third-party providers (keys are only ever used server-side).
 HERE_API_KEY = os.environ.get("HERE_API_KEY", "")
 TRUCK_TARE_WEIGHT_LB = int(os.environ.get("TRUCK_TARE_WEIGHT_LB", "35000"))
+HEATMAP_MAX_POINTS = int(os.environ.get("HEATMAP_MAX_POINTS", "600"))
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO")},
+    # httpx logs every request URL at INFO; keep provider traffic out of normal logs.
+    "loggers": {"httpx": {"level": "WARNING"}},
 }
