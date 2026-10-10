@@ -4,7 +4,16 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import type { TripPlan } from '../../api/types'
 import { formatDateTime } from '../../lib/format'
 import { RISK_LABELS } from '../../lib/risk'
-import { EMPTY, checkpointFeatures, endpointFeatures, planBounds, routeFeatures, routeLabelFeatures } from './geojson'
+import {
+  EMPTY,
+  checkpointFeatures,
+  cumulativeLengths,
+  endpointFeatures,
+  planBounds,
+  positionAlong,
+  routeFeatures,
+  routeLabelFeatures,
+} from './geojson'
 import { OVERLAY_BEFORE_LAYER } from './layers'
 
 // Map renderer: MapLibre GL. Tiles: OpenFreeMap (free, no key), CARTO Positron as a fallback.
@@ -16,6 +25,9 @@ const TERRAIN_SOURCE = 'terrain-dem'
 const HILLSHADE_LAYER = 'terrain-hillshade'
 const VIEW_3D = { pitch: 58, bearing: -12 }
 const DRAW_MS = 1100
+const TRUCK_TRIP_MS = 6500
+// Park just short of B so the truck sits beside the destination pin instead of under it.
+const TRUCK_PARK_FRACTION = 0.97
 const CHECKPOINT_LAYERS = ['checkpoints-circle', 'checkpoints-other'] as const
 
 /** Checkpoints and route labels appear only after the route-drawing animation. */
@@ -103,12 +115,49 @@ function addLabelBackground(map: MapLibreMap) {
   })
 }
 
+/** Top-down truck icon pointing north; `icon-rotate` turns it to the direction of travel. */
+function addTruckIcon(map: MapLibreMap) {
+  const w = 22
+  const h = 40
+  const scale = 2
+  const canvas = document.createElement('canvas')
+  canvas.width = w * scale
+  canvas.height = h * scale
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.scale(scale, scale)
+  ctx.shadowColor = 'rgba(15,23,42,0.45)'
+  ctx.shadowBlur = 4
+  ctx.shadowOffsetY = 1.5
+  // Trailer
+  ctx.fillStyle = '#6366f1'
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.roundRect(4, 14, 14, 23, 2.5)
+  ctx.fill()
+  ctx.stroke()
+  ctx.shadowColor = 'transparent'
+  // Cab (front = top)
+  ctx.fillStyle = '#0ea5e9'
+  ctx.beginPath()
+  ctx.roundRect(5, 3, 12, 10, [4, 4, 2, 2])
+  ctx.fill()
+  ctx.stroke()
+  // Windshield
+  ctx.fillStyle = '#e0f2fe'
+  ctx.fillRect(7, 5, 8, 3)
+  map.addImage('truck', ctx.getImageData(0, 0, w * scale, h * scale), { pixelRatio: scale })
+}
+
 function addLayers(map: MapLibreMap) {
   addLabelBackground(map)
+  addTruckIcon(map)
   map.addSource('routes', { type: 'geojson', data: EMPTY })
   map.addSource('checkpoints', { type: 'geojson', data: EMPTY })
   map.addSource('endpoints', { type: 'geojson', data: EMPTY })
   map.addSource('route-labels', { type: 'geojson', data: EMPTY })
+  map.addSource('truck', { type: 'geojson', data: EMPTY })
 
   map.addLayer({
     id: 'routes-casing',
@@ -161,6 +210,20 @@ function addLayers(map: MapLibreMap) {
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, ['case', ['get', 'selected'], 7, 4.5], 9, ['case', ['get', 'selected'], 10, 7]],
       'circle-stroke-color': ['case', ['get', 'selected'], '#0f172a', '#ffffff'],
       'circle-stroke-width': ['case', ['get', 'selected'], 2.5, 1.5],
+    },
+  })
+  map.addLayer({
+    id: 'truck',
+    type: 'symbol',
+    source: 'truck',
+    layout: {
+      'icon-image': 'truck',
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 0.95, 8, 1.35],
+      'icon-rotate': ['get', 'bearing'],
+      'icon-rotation-alignment': 'map',
+      'icon-pitch-alignment': 'map',
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
     },
   })
   map.addLayer({
@@ -335,6 +398,46 @@ export function MapView({
       setMarkersVisible(map, true)
     }
   }, [ready, plan])
+
+  // A truck drives the selected route once, then parks at B: after each new plan (once the routes have
+  // drawn) and again whenever another route is selected.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const source = map.getSource('truck') as GeoJSONSource
+    const route = plan?.routes.find((r) => r.id === selectedRouteId)
+    if (!route || route.geometry.coordinates.length < 2) {
+      source.setData(EMPTY)
+      return
+    }
+    const coords = route.geometry.coordinates
+    const cum = cumulativeLengths(coords)
+    const total = cum[cum.length - 1]
+    const place = (fraction: number) => {
+      const { lonLat, bearing } = positionAlong(coords, cum, total * fraction)
+      source.setData({
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: lonLat }, properties: { bearing } }],
+      })
+    }
+    if (prefersReducedMotion()) {
+      place(TRUCK_PARK_FRACTION)
+      return
+    }
+    source.setData(EMPTY)
+    const start = performance.now() + (drawing.current ? DRAW_MS : 0)
+    let frame = requestAnimationFrame(function step(now) {
+      const t = (now - start) / TRUCK_TRIP_MS
+      if (t >= 0) {
+        const clamped = Math.min(t, 1)
+        const eased = clamped < 0.5 ? 2 * clamped * clamped : 1 - (-2 * clamped + 2) ** 2 / 2 // ease in-out
+        place(eased * TRUCK_PARK_FRACTION)
+        if (t >= 1) return
+      }
+      frame = requestAnimationFrame(step)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [ready, plan, selectedRouteId])
 
   // New plan or view mode: frame the trip (tilted in 3D), clear of the floating panels.
   useEffect(() => {

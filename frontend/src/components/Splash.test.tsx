@@ -35,10 +35,20 @@ describe('Splash', () => {
 })
 
 describe('useCountUp', () => {
-  it('animates to the target value', async () => {
+  // Fake the frame clock so the animation is deterministic, not dependent on machine load.
+  beforeEach(() => vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] }))
+  afterEach(() => vi.useRealTimers())
+
+  it('animates to the target value', () => {
     const { result, rerender } = renderHook(({ v }) => useCountUp(v, 50), { initialProps: { v: 100 } })
-    await vi.waitFor(() => expect(result.current).toBe(100))
+    act(() => vi.advanceTimersByTime(25))
+    expect(result.current).toBeGreaterThan(0)
+    expect(result.current).toBeLessThan(100)
+    act(() => vi.advanceTimersByTime(100))
+    expect(result.current).toBe(100)
+
     rerender({ v: 40 })
-    await vi.waitFor(() => expect(result.current).toBe(40))
+    act(() => vi.advanceTimersByTime(100))
+    expect(result.current).toBe(40)
   })
 })

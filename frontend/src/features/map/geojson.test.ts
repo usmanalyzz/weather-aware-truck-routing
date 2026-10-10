@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { RISK_COLORS, routeColor } from '../../lib/risk'
 import { plan } from '../../test/utils'
-import { checkpointFeatures, checkpointTooltip, endpointFeatures, planBounds, routeFeatures, routeLabelFeatures, routeSummaryText } from './geojson'
+import {
+  checkpointFeatures,
+  checkpointTooltip,
+  cumulativeLengths,
+  endpointFeatures,
+  planBounds,
+  positionAlong,
+  routeFeatures,
+  routeLabelFeatures,
+  routeSummaryText,
+} from './geojson'
 
 describe('map GeoJSON builders', () => {
   it('marks the selected and recommended routes', () => {
@@ -84,5 +94,34 @@ describe('map GeoJSON builders', () => {
       }
     }
     expect(planBounds({ ...plan, routes: [] })).toBeNull()
+  })
+})
+
+describe('truck animation path', () => {
+  const line: [number, number][] = [
+    [0, 0],
+    [0, 1], // north
+    [1, 1], // then east
+  ]
+
+  it('interpolates position by distance and clamps to the ends', () => {
+    const cum = cumulativeLengths(line)
+    expect(cum[1]).toBeCloseTo(1)
+    expect(positionAlong(line, cum, 0.5).lonLat).toEqual([0, 0.5])
+    expect(positionAlong(line, cum, -3).lonLat).toEqual([0, 0])
+    const end = positionAlong(line, cum, 99).lonLat
+    expect(end[0]).toBeCloseTo(1)
+    expect(end[1]).toBeCloseTo(1)
+  })
+
+  it('faces the direction of travel', () => {
+    const cum = cumulativeLengths(line)
+    expect(positionAlong(line, cum, 0.5).bearing).toBeCloseTo(0) // heading north
+    expect(positionAlong(line, cum, cum[1] + 0.2).bearing).toBeCloseTo(90) // heading east
+    const back: [number, number][] = [
+      [0, 1],
+      [0, 0],
+    ]
+    expect(positionAlong(back, cumulativeLengths(back), 0.5).bearing).toBeCloseTo(180) // south
   })
 })

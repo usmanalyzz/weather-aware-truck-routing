@@ -75,15 +75,39 @@ export function checkpointFeatures(
   }
 }
 
-function pointAlong(coords: [number, number][], fraction: number): [number, number] {
-  const dist = (a: [number, number], b: [number, number]) => Math.hypot((b[0] - a[0]) * Math.cos((a[1] * Math.PI) / 180), b[1] - a[1])
+type LonLat = [number, number]
+
+/** Planar distance in degrees with longitude scaled by latitude: fine for interpolation and headings. */
+function planarDistance(a: LonLat, b: LonLat): number {
+  return Math.hypot((b[0] - a[0]) * Math.cos((a[1] * Math.PI) / 180), b[1] - a[1])
+}
+
+export function cumulativeLengths(coords: LonLat[]): number[] {
   const cum = [0]
-  for (let i = 1; i < coords.length; i++) cum.push(cum[i - 1] + dist(coords[i - 1], coords[i]))
-  const target = cum[cum.length - 1] * fraction
-  const i = Math.max(1, cum.findIndex((c) => c >= target))
+  for (let i = 1; i < coords.length; i++) cum.push(cum[i - 1] + planarDistance(coords[i - 1], coords[i]))
+  return cum
+}
+
+/** Position and compass heading (degrees clockwise from north) at `distance` along a line. */
+export function positionAlong(coords: LonLat[], cum: number[], distance: number): { lonLat: LonLat; bearing: number } {
+  const total = cum[cum.length - 1]
+  const d = Math.min(Math.max(distance, 0), total)
+  let i = cum.findIndex((c) => c >= d)
+  if (i <= 0) i = 1
+  const [a, b] = [coords[i - 1], coords[i]]
   const seg = cum[i] - cum[i - 1] || 1
-  const f = (target - cum[i - 1]) / seg
-  return [coords[i - 1][0] + (coords[i][0] - coords[i - 1][0]) * f, coords[i - 1][1] + (coords[i][1] - coords[i - 1][1]) * f]
+  const f = (d - cum[i - 1]) / seg
+  const dx = (b[0] - a[0]) * Math.cos((a[1] * Math.PI) / 180)
+  const dy = b[1] - a[1]
+  return {
+    lonLat: [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f],
+    bearing: ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360,
+  }
+}
+
+function pointAlong(coords: LonLat[], fraction: number): LonLat {
+  const cum = cumulativeLengths(coords)
+  return positionAlong(coords, cum, cum[cum.length - 1] * fraction).lonLat
 }
 
 export function routeSummaryText(route: Route, recommended: boolean): string {
