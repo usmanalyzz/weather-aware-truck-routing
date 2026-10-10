@@ -41,9 +41,15 @@ async function planTrip() {
 }
 
 describe('App', () => {
-  it('shows an empty state before planning', () => {
+  it('shows the how-it-works guide before planning and hides it once there are results', async () => {
+    window.localStorage.clear()
+    api({ body: plan })
     renderWithClient(<App />)
-    expect(screen.getByText(/enter a trip to compare/i)).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'How it works' })).toBeInTheDocument()
+
+    await planTrip()
+    await screen.findByRole('region', { name: 'Recommendation' })
+    expect(screen.queryByRole('region', { name: 'How it works' })).not.toBeInTheDocument()
   })
 
   it('shows a loading state, then the recommendation, routes and checkpoints', async () => {

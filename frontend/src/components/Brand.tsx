@@ -19,13 +19,7 @@ export function Brand({ className = '' }: { className?: string }) {
       <LogoMark />
       <div className="min-w-0">
         <h1 className="truncate text-[17px] font-extrabold tracking-tight">Weather-Aware Truck Routing</h1>
-        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-600 ring-1 ring-emerald-500/30">
-            Django REST
-          </span>
-          <span className="rounded-full bg-sky-500/15 px-2 py-0.5 font-semibold text-sky-600 ring-1 ring-sky-500/30">React</span>
-          <span className="truncate opacity-70">Forecast at every checkpoint's ETA</span>
-        </div>
+        <p className="mt-0.5 truncate text-xs opacity-70">Forecast at every checkpoint's ETA</p>
       </div>
     </div>
   )

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { ApiError, api } from './api/client'
 import { Brand } from './components/Brand'
 import { Splash } from './components/Splash'
-import { EmptyState, PlanningOverlay, ResultsSkeleton, ViewToggle } from './components/MapOverlays'
+import { HowItWorks } from './components/HowItWorks'
+import { PlanningOverlay, ResultsSkeleton, ViewToggle } from './components/MapOverlays'
 import type { TripPlan, TripRequest } from './api/types'
 import { CheckpointPanel } from './features/checkpoints/CheckpointPanel'
 import { CheckpointTable } from './features/checkpoints/CheckpointTable'
@@ -83,7 +84,6 @@ export default function App() {
           view3d={view3d}
         >
           <ViewToggle view3d={view3d} onChange={setView3d} />
-          {!plan && !planMutation.isPending && <EmptyState />}
           {planMutation.isPending && <PlanningOverlay />}
         </MapView>
       </main>
@@ -111,6 +111,8 @@ export default function App() {
             <section className="card-3d rounded-2xl p-3.5">
               <TripForm onSubmit={(trip) => planMutation.mutate(trip)} submitting={planMutation.isPending} />
             </section>
+
+            {!plan && !planMutation.isPending && <HowItWorks />}
 
             {planMutation.isError && (
               <div role="alert" className="animate-rise rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 shadow-sm">

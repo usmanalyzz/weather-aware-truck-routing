@@ -64,10 +64,6 @@ export function Splash({ ready }: { ready: boolean }) {
         <p className="mt-2 max-w-md text-sm text-indigo-100/80">
           Compare real truck routes by the forecast at every checkpoint's arrival time.
         </p>
-        <div className="mt-4 flex gap-2 text-xs font-semibold">
-          <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-emerald-300 ring-1 ring-emerald-400/30">Django REST Framework</span>
-          <span className="rounded-full bg-sky-400/15 px-3 py-1 text-sky-300 ring-1 ring-sky-400/30">React</span>
-        </div>
 
         <TruckLoader className="mt-8" />
         <p className="mt-3 h-4 text-xs text-indigo-100/70" aria-live="polite">

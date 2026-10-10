@@ -16,7 +16,7 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
 | Backend | Python 3.12 · **Django 5.2** · **Django REST Framework** · httpx |
 | Frontend | **React** · TypeScript · Vite · Tailwind CSS · TanStack Query · MapLibre GL JS |
 | Providers | HERE Routing v8 (truck mode) + Autosuggest · Open-Meteo hourly forecast · OpenFreeMap tiles |
-| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 63 Vitest/RTL tests · GitHub Actions CI |
+| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 64 Vitest/RTL tests · GitHub Actions CI |
 
 ---
 
@@ -201,7 +201,7 @@ npm run dev
 
 ```bash
 cd backend  && ruff check . && pytest --cov           # 174 tests
-cd frontend && npm run lint && npm test && npm run build   # 63 tests, typecheck + build
+cd frontend && npm run lint && npm test && npm run build   # 64 tests, typecheck + build
 ```
 
 * **Backend:**

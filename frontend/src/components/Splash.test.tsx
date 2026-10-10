@@ -32,12 +32,6 @@ describe('Splash', () => {
     act(() => vi.advanceTimersByTime(600))
     expect(splash()).not.toBeInTheDocument()
   })
-
-  it('names the stack', () => {
-    render(<Splash ready={false} />)
-    expect(screen.getByText('Django REST Framework')).toBeInTheDocument()
-    expect(screen.getByText('React')).toBeInTheDocument()
-  })
 })
 
 describe('useCountUp', () => {

@@ -1,4 +1,3 @@
-import { LogoMark } from './Brand'
 import { TruckLoader } from './TruckLoader'
 
 export function ViewToggle({ view3d, onChange }: { view3d: boolean; onChange: (v: boolean) => void }) {
@@ -24,43 +23,6 @@ export function ViewToggle({ view3d, onChange }: { view3d: boolean; onChange: (v
           {is3d ? '3D' : '2D'}
         </button>
       ))}
-    </div>
-  )
-}
-
-const STEPS = [
-  { n: '1', title: 'Enter the trip', text: 'Origin, destination, departure and load weight.' },
-  { n: '2', title: 'Forecast at each ETA', text: 'Weather is sampled when the truck reaches every checkpoint.' },
-  { n: '3', title: 'Compare and choose', text: 'Routes are ranked by Severe and High miles, then risk and time.' },
-]
-
-/** Onboarding card shown on the map before the first plan. */
-export function EmptyState() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[5] grid place-items-start justify-center px-4 pt-14 md:place-items-center md:pt-0 lg:left-[450px]">
-      <div className="glass-blur animate-rise max-w-md rounded-3xl p-5 md:p-6">
-        <div className="flex items-center gap-3 [perspective:600px]">
-          <div className="animate-float [transform-style:preserve-3d]">
-            <LogoMark className="h-12 w-12" />
-          </div>
-          <p className="text-sm font-semibold text-slate-800">
-            Enter a trip to compare up to three truck routes.
-          </p>
-        </div>
-        <ol className="mt-4 hidden space-y-3 md:block">
-          {STEPS.map((step) => (
-            <li key={step.n} className="flex gap-3">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 text-xs font-bold text-white shadow-[0_3px_0_0_#312e81]">
-                {step.n}
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{step.title}</p>
-                <p className="text-xs text-slate-600">{step.text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
     </div>
   )
 }
