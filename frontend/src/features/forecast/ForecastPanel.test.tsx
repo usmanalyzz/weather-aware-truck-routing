@@ -4,7 +4,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import { describe, expect, it, vi } from 'vitest'
 import type { Heatmap } from '../../api/types'
 import heatmapJson from '../../test/fixtures/heatmap.json'
-import { ForecastPanel, HEATMAP_LAYER, HEATMAP_SOURCE } from './ForecastPanel'
+import { CELLS_SOURCE, COLUMNS_LAYER, ForecastPanel, HEATMAP_LAYER, HEATMAP_SOURCE } from './ForecastPanel'
 import { timeForHour } from './heatmapStyle'
 
 const heatmap = heatmapJson as unknown as Heatmap
@@ -12,19 +12,22 @@ const heatmap = heatmapJson as unknown as Heatmap
 function fakeMap() {
   const sources = new Map<string, { setData: ReturnType<typeof vi.fn> }>()
   const layers = new Set<string>(['routes-casing'])
-  const setData = vi.fn()
   const map = {
     getSource: (id: string) => sources.get(id),
-    addSource: vi.fn((id: string) => sources.set(id, { setData })),
+    addSource: vi.fn((id: string) => sources.set(id, { setData: vi.fn() })),
     getLayer: (id: string) => (layers.has(id) ? { id } : undefined),
     addLayer: vi.fn((layer: { id: string }) => layers.add(layer.id)),
     setPaintProperty: vi.fn(),
     setLayoutProperty: vi.fn(),
+    setFilter: vi.fn(),
     on: vi.fn(),
     off: vi.fn(),
     queryRenderedFeatures: vi.fn(() => []),
   }
-  return { map, setData, asMap: map as unknown as MapLibreMap }
+  const setData = (id: string) => sources.get(id)!.setData
+  const visibility = (layer: string) =>
+    map.setLayoutProperty.mock.calls.filter(([l, prop]) => l === layer && prop === 'visibility').at(-1)?.[2]
+  return { map, setData, visibility, asMap: map as unknown as MapLibreMap }
 }
 
 function lastPaint(map: ReturnType<typeof fakeMap>['map'], property: string) {
@@ -45,8 +48,11 @@ describe('ForecastPanel', () => {
     const { map, setData } = renderPanel()
     expect(map.addSource).toHaveBeenCalledWith(HEATMAP_SOURCE, expect.anything())
     expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: HEATMAP_LAYER, type: 'circle' }), 'routes-casing')
-    expect(setData).toHaveBeenCalledTimes(1)
-    expect(setData.mock.calls[0][0].features).toHaveLength(heatmap.grid.count)
+    expect(map.addLayer).toHaveBeenCalledWith(expect.objectContaining({ id: COLUMNS_LAYER, type: 'fill-extrusion' }))
+    for (const source of [HEATMAP_SOURCE, CELLS_SOURCE]) {
+      expect(setData(source)).toHaveBeenCalledTimes(1)
+      expect(setData(source).mock.calls[0][0].features).toHaveLength(heatmap.grid.count)
+    }
   })
 
   it('moving the slider only swaps paint expressions (no data re-upload)', () => {
@@ -58,7 +64,8 @@ describe('ForecastPanel', () => {
 
     expect(lastPaint(map, 'circle-color')).toContain('"r13"')
     expect(lastPaint(map, 'circle-opacity')).toContain('"r13"')
-    expect(setData).toHaveBeenCalledTimes(1)
+    expect(setData(HEATMAP_SOURCE)).toHaveBeenCalledTimes(1)
+    expect(setData(CELLS_SOURCE)).toHaveBeenCalledTimes(1)
     expect(screen.getByText(/^\+13 h ·/)).toBeInTheDocument()
   })
 
@@ -102,9 +109,23 @@ describe('ForecastPanel', () => {
   })
 
   it('hides the overlay', async () => {
-    const { map } = renderPanel()
+    const { visibility } = renderPanel()
+    expect(visibility(HEATMAP_LAYER)).toBe('visible')
     await userEvent.click(screen.getByRole('checkbox', { name: /show overlay/i }))
-    expect(map.setLayoutProperty).toHaveBeenLastCalledWith(HEATMAP_LAYER, 'visibility', 'none')
+    expect(visibility(HEATMAP_LAYER)).toBe('none')
+    expect(visibility(COLUMNS_LAYER)).toBe('none')
+  })
+
+  it('switches to 3D weather columns whose height follows the slider hour', () => {
+    const { map, visibility } = renderPanel({ view3d: true })
+    expect(visibility(COLUMNS_LAYER)).toBe('visible')
+    expect(visibility(HEATMAP_LAYER)).toBe('none')
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '20' } })
+
+    const height = map.setPaintProperty.mock.calls.filter(([l, p]) => l === COLUMNS_LAYER && p === 'fill-extrusion-height').at(-1)
+    expect(JSON.stringify(height?.[2])).toContain('"r20"')
+    expect(map.setFilter).toHaveBeenLastCalledWith(COLUMNS_LAYER, ['all', ['has', 'r20'], ['>=', ['get', 'r20'], 1]])
   })
 
   it('shows loading and error states', () => {

@@ -8,8 +8,10 @@ import {
   legendLabels,
   opacityExpression,
   propertyKey,
+  heightExpression,
   radiusExpression,
   thresholds,
+  toCellCollection,
   timeForHour,
   toFeatureCollection,
 } from './heatmapStyle'
@@ -71,5 +73,20 @@ describe('heatmap styling', () => {
     expect(hourForTime(heatmap, timeForHour(heatmap, 10))).toBe(10)
     expect(hourForTime(heatmap, '2000-01-01T00:00:00Z')).toBe(0)
     expect(hourForTime(heatmap, '2100-01-01T00:00:00Z')).toBe(48)
+  })
+
+  it('builds one square 3D cell per grid point with column height scaled to No Travel', () => {
+    const cells = toCellCollection(heatmap)
+    expect(cells.features).toHaveLength(heatmap.grid.count)
+    const ring = cells.features[0].geometry.coordinates[0]
+    expect(ring).toHaveLength(5)
+    expect(ring[0]).toEqual(ring[4])
+    const [lon, lat] = heatmap.points[0]
+    expect((ring[0][0] + ring[2][0]) / 2).toBeCloseTo(lon, 6)
+    expect((ring[0][1] + ring[2][1]) / 2).toBeCloseTo(lat, 6)
+
+    const height = JSON.stringify(heightExpression('wind_mph', 5, heatmap))
+    expect(height).toContain('"w5"')
+    expect(height).toContain('55') // normalised by the No Travel wind threshold
   })
 })

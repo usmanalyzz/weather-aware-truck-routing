@@ -50,6 +50,8 @@ Time is split to match the rubric: about 4 minutes on logic (40 %), 2.5 on UI an
   data upload and no React re-render of the sidebar.
 - **Why discs instead of a density heatmap:** density colour depends on how many points overlap; here colour always
   matches the legend.
+- Click **3D**: the map tilts over real terrain and the storm rises as columns (height = closeness to No Travel). Press
+  play to watch the storm move across the route. It uses the same paint-only updates, so it stays smooth.
 
 ### 6:00 – 7:30 · Code quality and robustness
 - Repo tour:

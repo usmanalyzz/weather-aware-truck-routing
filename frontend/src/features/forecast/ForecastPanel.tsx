@@ -7,17 +7,22 @@ import { INTERACTIVE_LAYERS, OVERLAY_BEFORE_LAYER } from '../map/layers'
 import {
   METRICS,
   colorExpression,
+  columnFilter,
+  heightExpression,
   horizonHour,
   hourForTime,
   legendLabels,
   opacityExpression,
   radiusExpression,
   timeForHour,
+  toCellCollection,
   toFeatureCollection,
 } from './heatmapStyle'
 
 export const HEATMAP_SOURCE = 'heatmap'
 export const HEATMAP_LAYER = 'heatmap-points'
+export const CELLS_SOURCE = 'heatmap-cells'
+export const COLUMNS_LAYER = 'heatmap-columns'
 const PLAY_STEP_MS = 700
 
 interface ForecastPanelProps {
@@ -29,6 +34,8 @@ interface ForecastPanelProps {
   focusTime: string | null
   /** Hours after departure that the selected route is on the road. */
   tripHours: number | null
+  /** Show weather as extruded 3D columns instead of a flat field. */
+  view3d?: boolean
 }
 
 function ensureLayer(map: MapLibreMap) {
@@ -40,6 +47,18 @@ function ensureLayer(map: MapLibreMap) {
       { id: HEATMAP_LAYER, type: 'circle', source: HEATMAP_SOURCE, paint: { 'circle-blur': 1, 'circle-opacity': 0 } },
       map.getLayer(OVERLAY_BEFORE_LAYER) ? OVERLAY_BEFORE_LAYER : undefined,
     )
+  }
+  if (!map.getSource(CELLS_SOURCE)) {
+    map.addSource(CELLS_SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
+  }
+  if (!map.getLayer(COLUMNS_LAYER)) {
+    map.addLayer({
+      id: COLUMNS_LAYER,
+      type: 'fill-extrusion',
+      source: CELLS_SOURCE,
+      layout: { visibility: 'none' },
+      paint: { 'fill-extrusion-opacity': 0.78, 'fill-extrusion-vertical-gradient': true },
+    })
   }
 }
 
@@ -53,7 +72,7 @@ function describePoint(heatmap: Heatmap, index: number, hour: number): string[] 
   ]
 }
 
-export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHours }: ForecastPanelProps) {
+export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHours, view3d = false }: ForecastPanelProps) {
   const [hour, setHour] = useState(0)
   const [metric, setMetric] = useState<HeatmapMetric>('risk')
   const [visible, setVisible] = useState(true)
@@ -68,8 +87,9 @@ export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHou
   useEffect(() => {
     if (!map) return
     ensureLayer(map)
-    const source = map.getSource(HEATMAP_SOURCE) as GeoJSONSource
-    source.setData(heatmap ? toFeatureCollection(heatmap) : { type: 'FeatureCollection', features: [] })
+    const empty = { type: 'FeatureCollection' as const, features: [] }
+    ;(map.getSource(HEATMAP_SOURCE) as GeoJSONSource).setData(heatmap ? toFeatureCollection(heatmap) : empty)
+    ;(map.getSource(CELLS_SOURCE) as GeoJSONSource).setData(heatmap ? toCellCollection(heatmap) : empty)
     if (heatmap) map.setPaintProperty(HEATMAP_LAYER, 'circle-radius', radiusExpression(heatmap))
   }, [map, heatmap])
 
@@ -92,18 +112,25 @@ export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHou
       new maplibregl.Popup({ offset: 6, focusAfterOpen: false }).setLngLat(e.lngLat).setDOMContent(content).addTo(map)
     }
     map.on('click', HEATMAP_LAYER, onClick)
+    map.on('click', COLUMNS_LAYER, onClick)
     return () => {
       map.off('click', HEATMAP_LAYER, onClick)
+      map.off('click', COLUMNS_LAYER, onClick)
     }
   }, [map])
 
   // The slider and metric only swap paint expressions: no data upload, no layer rebuild.
   useEffect(() => {
     if (!map || !heatmap || !map.getLayer(HEATMAP_LAYER)) return
-    map.setPaintProperty(HEATMAP_LAYER, 'circle-color', colorExpression(metric, hour, heatmap))
+    const color = colorExpression(metric, hour, heatmap)
+    map.setPaintProperty(HEATMAP_LAYER, 'circle-color', color)
     map.setPaintProperty(HEATMAP_LAYER, 'circle-opacity', opacityExpression(metric, hour, heatmap))
-    map.setLayoutProperty(HEATMAP_LAYER, 'visibility', visible ? 'visible' : 'none')
-  }, [map, heatmap, metric, hour, visible])
+    map.setPaintProperty(COLUMNS_LAYER, 'fill-extrusion-color', color)
+    map.setPaintProperty(COLUMNS_LAYER, 'fill-extrusion-height', heightExpression(metric, hour, heatmap))
+    map.setFilter(COLUMNS_LAYER, columnFilter(metric, hour, heatmap))
+    map.setLayoutProperty(HEATMAP_LAYER, 'visibility', visible && !view3d ? 'visible' : 'none')
+    map.setLayoutProperty(COLUMNS_LAYER, 'visibility', visible && view3d ? 'visible' : 'none')
+  }, [map, heatmap, metric, hour, visible, view3d])
 
   // Follow the selected checkpoint's ETA.
   useEffect(() => {
@@ -135,18 +162,18 @@ export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHou
   return (
     <section
       aria-label="Weather forecast overlay"
-      className="m-2 rounded-xl border border-slate-200 bg-white/95 p-2.5 shadow-lg backdrop-blur lg:absolute lg:bottom-2 lg:left-1/2 lg:m-0 lg:w-[min(640px,calc(100%-1.5rem))] lg:-translate-x-1/2"
+      className="glass mx-3 mt-3 rounded-2xl p-3 lg:m-0"
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <h2 className="text-xs font-semibold tracking-wide text-slate-600 uppercase">Corridor forecast</h2>
-        <div className="flex rounded-lg bg-slate-100 p-0.5" role="group" aria-label="Heatmap metric">
+        <div className="flex rounded-xl bg-slate-900/5 p-0.5 shadow-inner" role="group" aria-label="Heatmap metric">
           {METRICS.map((m) => (
             <button
               key={m.id}
               type="button"
               aria-pressed={metric === m.id}
               onClick={() => setMetric(m.id)}
-              className={`rounded-md px-2 py-0.5 text-xs font-medium ${
+              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
                 metric === m.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -173,7 +200,7 @@ export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHou
                 setPlaying((p) => !p)
               }}
               aria-label={playing ? 'Pause forecast animation' : 'Play forecast animation'}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-sm text-white hover:bg-blue-700"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-b from-blue-500 to-indigo-600 text-sm text-white shadow-[0_3px_0_0_#312e81,0_10px_20px_-8px_rgb(79_70_229/0.8)] transition-all hover:brightness-110 active:translate-y-[2px] active:shadow-[0_1px_0_0_#312e81]"
             >
               {playing ? '❚❚' : '▶'}
             </button>

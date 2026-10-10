@@ -67,8 +67,8 @@ export function TripForm({ onSubmit, submitting, initial }: TripFormProps) {
             onChange={(e) => update('departure', e.target.value)}
             aria-invalid={Boolean(errors.departure)}
             aria-describedby={errors.departure ? 'departure-error' : undefined}
-            className={`w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.departure ? 'border-red-400' : 'border-slate-300'
+            className={`w-full rounded-xl border bg-white/90 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/15 ${
+              errors.departure ? 'border-red-400' : 'border-slate-200'
             }`}
           />
           {errors.departure && (
@@ -92,8 +92,8 @@ export function TripForm({ onSubmit, submitting, initial }: TripFormProps) {
             onChange={(e) => update('loadWeight', e.target.value)}
             aria-invalid={Boolean(errors.loadWeight)}
             aria-describedby={errors.loadWeight ? 'load-error' : 'load-hint'}
-            className={`w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-blue-500 ${
-              errors.loadWeight ? 'border-red-400' : 'border-slate-300'
+            className={`w-full rounded-xl border bg-white/90 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/15 ${
+              errors.loadWeight ? 'border-red-400' : 'border-slate-200'
             }`}
           />
           {errors.loadWeight ? (
@@ -112,11 +112,11 @@ export function TripForm({ onSubmit, submitting, initial }: TripFormProps) {
         <legend className="mb-1 block text-xs font-semibold tracking-wide text-slate-600 uppercase">
           Weather checkpoint every
         </legend>
-        <div className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1">
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 shadow-inner">
           {INTERVALS.map((mi) => (
             <label
               key={mi}
-              className={`cursor-pointer rounded-md py-1.5 text-center text-sm font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 ${
+              className={`cursor-pointer rounded-lg py-1.5 text-center text-sm font-medium transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue-500 ${
                 values.interval === mi ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -137,7 +137,7 @@ export function TripForm({ onSubmit, submitting, initial }: TripFormProps) {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-wait disabled:opacity-70"
+        className="w-full rounded-xl bg-gradient-to-b from-blue-500 to-indigo-600 px-4 py-3 text-sm font-bold tracking-wide text-white shadow-[0_4px_0_0_#312e81,0_14px_28px_-12px_rgb(79_70_229/0.8)] transition-all hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_0_#312e81,0_6px_14px_-8px_rgb(79_70_229/0.7)] focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:outline-none disabled:cursor-wait disabled:opacity-80"
       >
         {submitting ? 'Planning routes…' : 'Plan routes'}
       </button>

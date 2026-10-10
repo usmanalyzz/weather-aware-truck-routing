@@ -13,9 +13,9 @@ interface CheckpointPanelProps {
 
 function Reading({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-50 px-2 py-1.5">
+    <div className="rounded-xl bg-gradient-to-b from-slate-50 to-slate-100 px-2.5 py-2 shadow-inner ring-1 ring-slate-200/70">
       <dt className="text-[11px] tracking-wide text-slate-500 uppercase">{label}</dt>
-      <dd className="text-sm font-medium text-slate-900 tabular-nums">{value}</dd>
+      <dd className="text-base font-bold text-slate-900 tabular-nums">{value}</dd>
     </div>
   )
 }
@@ -25,7 +25,7 @@ export function CheckpointPanel({ route, checkpoint: cp, loadWeightLb, onStep, o
   const factors = Object.entries(cp.risk.factors) as [keyof typeof FACTOR_LABELS, Checkpoint['risk']['level']][]
 
   return (
-    <section aria-label="Checkpoint details" className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <section aria-label="Checkpoint details" className="card-3d animate-pop rounded-2xl p-3.5">
       <div className="mb-2 flex items-start gap-2">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-slate-900">

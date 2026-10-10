@@ -16,7 +16,7 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
 | Backend | Python 3.12 · **Django 5.2** · **Django REST Framework** · httpx |
 | Frontend | **React** · TypeScript · Vite · Tailwind CSS · TanStack Query · MapLibre GL JS |
 | Providers | HERE Routing v8 (truck mode) + Autosuggest · Open-Meteo hourly forecast · OpenFreeMap tiles |
-| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 55 Vitest/RTL tests · GitHub Actions CI |
+| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 61 Vitest/RTL tests · GitHub Actions CI |
 
 ---
 
@@ -34,6 +34,16 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
    *"Route B beats Route A: fewer Severe-or-worse miles (0.0 mi vs 12.5 mi)."*
 7. **Map:** all routes, risk-coloured checkpoints, selected-checkpoint details, route summaries, and a corridor
    weather overlay you can scrub (or play) from departure to +48 h.
+8. **3D view:** a toggle tilts the map over real terrain (AWS open elevation tiles). Weather becomes extruded columns
+   whose height is how close conditions are to the No Travel threshold, animated by the same slider.
+
+**UX details:**
+* branded splash on load (bounded to 1.4–3.5 s, never blocking);
+* routes that draw themselves on the map;
+* the map flies to a selected checkpoint;
+* count-up metrics and 3D-tilting route cards.
+
+All motion is disabled for users who prefer reduced motion, and the layout adapts from 390 px phones to desktop.
 
 ## Architecture
 
@@ -187,7 +197,7 @@ npm run dev
 
 ```bash
 cd backend  && ruff check . && pytest --cov           # 174 tests
-cd frontend && npm run lint && npm test && npm run build   # 55 tests, typecheck + build
+cd frontend && npm run lint && npm test && npm run build   # 61 tests, typecheck + build
 ```
 
 * **Backend:**
@@ -198,6 +208,7 @@ cd frontend && npm run lint && npm test && npm run build   # 55 tests, typecheck
   * all routes unsafe, unknown forecasts, duplicate or too few routes, provider timeouts, partial weather outages;
   * validation and the error envelope.
 * **Frontend:**
+  * splash timing, 3D column filtering and height;
   * form validation and autocomplete (mouse and keyboard);
   * loading, error and partial-data states;
   * route/map/table/panel selection sync;
@@ -225,6 +236,6 @@ Step-by-step instructions: **[docs/deployment.md](docs/deployment.md)**.
 
 ## Data and attribution
 
-Routing and geocoding © HERE. Weather data by [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0). Map tiles by
+Routing and geocoding © HERE. Weather data by [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0). Terrain: [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/). Map tiles by
 [OpenFreeMap](https://openfreemap.org), © [OpenMapTiles](https://openmaptiles.org), data ©
 [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).

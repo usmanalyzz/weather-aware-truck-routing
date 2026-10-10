@@ -1,1 +1,131 @@
 @import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-drive: drive 2.4s ease-in-out infinite;
+  --animate-sweep: sweep 1.4s 0.4s ease-out both;
+  --animate-pop: pop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0) rotateX(8deg) rotateY(-10deg);
+    }
+    50% {
+      transform: translateY(-8px) rotateX(4deg) rotateY(-4deg);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes sweep {
+    from {
+      transform: translateX(0) skewX(-20deg);
+    }
+    to {
+      transform: translateX(520%) skewX(-20deg);
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes drive {
+    0% {
+      transform: translateX(-120%);
+    }
+    100% {
+      transform: translateX(320%);
+    }
+  }
+}
+
+/* Panel floating above the map. Large panels skip backdrop blur: it is recomputed on every map frame. */
+@utility glass {
+  background: color-mix(in oklab, white 90%, transparent);
+  border: 1px solid color-mix(in oklab, white 70%, transparent);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.7) inset,
+    0 24px 48px -20px rgb(15 23 42 / 0.45),
+    0 8px 16px -10px rgb(15 23 42 / 0.25);
+}
+
+/* Frosted variant for small floating controls, where live blur is cheap. */
+@utility glass-blur {
+  background: color-mix(in oklab, white 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid color-mix(in oklab, white 70%, transparent);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.7) inset,
+    0 18px 36px -18px rgb(15 23 42 / 0.45);
+}
+
+/* Raised card with layered depth. */
+@utility card-3d {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgb(226 232 240);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255) inset,
+    0 1px 2px rgb(15 23 42 / 0.06),
+    0 12px 28px -16px rgb(15 23 42 / 0.35);
+}
+
+@utility skeleton {
+  background: linear-gradient(90deg, rgb(226 232 240) 25%, rgb(241 245 249) 50%, rgb(226 232 240) 75%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  background: #0b1220;
+}
+
+.maplibregl-popup-content {
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 12px 28px -12px rgb(15 23 42 / 0.45);
+}
+
+.maplibregl-ctrl-group {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 24px -12px rgb(15 23 42 / 0.45) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

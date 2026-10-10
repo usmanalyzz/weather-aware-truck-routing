@@ -2,6 +2,9 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { useState } from 'react'
 import { ApiError, api } from './api/client'
+import { Brand } from './components/Brand'
+import { Splash } from './components/Splash'
+import { EmptyState, PlanningOverlay, ResultsSkeleton, ViewToggle } from './components/MapOverlays'
 import type { TripPlan, TripRequest } from './api/types'
 import { CheckpointPanel } from './features/checkpoints/CheckpointPanel'
 import { CheckpointTable } from './features/checkpoints/CheckpointTable'
@@ -27,6 +30,7 @@ export default function App() {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [selectedSeq, setSelectedSeq] = useState<number | null>(null)
   const [map, setMap] = useState<MapLibreMap | null>(null)
+  const [view3d, setView3d] = useState(false)
 
   const planMutation = useMutation<TripPlan, unknown, TripRequest>({
     mutationFn: (trip) => api.planTrip(trip),
@@ -53,99 +57,96 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-100 text-slate-900 lg:h-dvh">
-      <header className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-2.5">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-600 text-sm font-bold text-white" aria-hidden>
-          WR
-        </span>
-        <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold">Weather-Aware Truck Routing</h1>
-          <p className="truncate text-xs text-slate-500">Compare truck routes by forecast weather at each checkpoint's ETA</p>
-        </div>
+    <div className="min-h-dvh bg-gradient-to-b from-slate-100 to-slate-200 text-slate-900 lg:relative lg:h-dvh lg:overflow-hidden">
+      <Splash ready={map !== null} />
+
+      {/* Phone header (the desktop brand sits inside the floating sidebar). */}
+      <header className="relative z-30 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 px-4 py-3 text-white shadow-lg lg:hidden">
+        <Brand />
       </header>
 
-      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
-        <aside className="order-2 w-full space-y-3 p-3 lg:order-1 lg:overflow-y-auto lg:w-[420px] lg:shrink-0 lg:border-r lg:border-slate-200">
-          <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-            <TripForm onSubmit={(trip) => planMutation.mutate(trip)} submitting={planMutation.isPending} />
-          </section>
+      {/* Full-bleed map on desktop; a fixed-height block on phones. */}
+      <main className="relative h-[52dvh] min-h-[340px] lg:absolute lg:inset-0 lg:h-auto">
+        <MapView
+          plan={plan}
+          selectedRouteId={selectedRouteId}
+          selectedSeq={selectedSeq}
+          onSelectRoute={selectRoute}
+          onSelectCheckpoint={setSelectedSeq}
+          onMapReady={setMap}
+          view3d={view3d}
+        >
+          <ViewToggle view3d={view3d} onChange={setView3d} />
+          {!plan && !planMutation.isPending && <EmptyState />}
+          {planMutation.isPending && <PlanningOverlay />}
+        </MapView>
+      </main>
 
-          {planMutation.isError && (
-            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-              <p className="font-semibold">Could not plan this trip</p>
-              <p className="mt-0.5">{errorMessage(planMutation.error)}</p>
-            </div>
-          )}
+      {plan && (
+        <div className="relative z-10 lg:absolute lg:bottom-3 lg:left-[calc(50%+225px)] lg:w-[min(660px,calc(100%-500px))] lg:-translate-x-1/2">
+          <ForecastPanel
+            map={map}
+            heatmap={heatmapQuery.data}
+            loading={heatmapQuery.isPending}
+            error={heatmapQuery.isError ? errorMessage(heatmapQuery.error) : null}
+            focusTime={selectedCheckpoint?.eta ?? null}
+            tripHours={selectedRoute ? selectedRoute.duration_s / 3600 : null}
+            view3d={view3d}
+          />
+        </div>
+      )}
 
-          {plan && (
-            <>
-              <Recommendation plan={plan} />
-              <Notices notices={plan.notices} />
-              <p className="px-1 text-xs text-slate-500">
-                Departing {formatDateTime(plan.request.departure_time)} · {plan.request.load_weight_lb.toLocaleString()} lb ·
-                checkpoints every {plan.request.sample_interval_mi} mi
-              </p>
-              <RouteCards plan={plan} selectedRouteId={selectedRouteId} onSelectRoute={selectRoute} />
-              {selectedRoute && selectedCheckpoint && (
-                <CheckpointPanel
-                  route={selectedRoute}
-                  checkpoint={selectedCheckpoint}
-                  loadWeightLb={plan.request.load_weight_lb}
-                  onStep={setSelectedSeq}
-                  onClose={() => setSelectedSeq(null)}
-                />
-              )}
-              {selectedRoute && (
-                <section aria-label="Checkpoint list">
-                  <h2 className="mb-1 px-1 text-xs font-semibold tracking-wide text-slate-600 uppercase">
-                    {selectedRoute.label} checkpoints ({selectedRoute.checkpoints.length})
-                  </h2>
-                  <CheckpointTable route={selectedRoute} selectedSeq={selectedSeq} onSelect={setSelectedSeq} />
-                </section>
-              )}
-            </>
-          )}
-        </aside>
-
-        <main className="relative order-1 flex flex-col lg:order-2 lg:flex-1">
-          <div className="relative h-[55dvh] min-h-[320px] lg:h-auto lg:flex-1">
-          <MapView
-            plan={plan}
-            selectedRouteId={selectedRouteId}
-            selectedSeq={selectedSeq}
-            onSelectRoute={selectRoute}
-            onSelectCheckpoint={setSelectedSeq}
-            onMapReady={setMap}
-          >
-            {!plan && !planMutation.isPending && (
-              <div className="pointer-events-none absolute inset-x-0 top-4 flex justify-center px-4">
-                <p className="rounded-full bg-white/90 px-4 py-2 text-sm text-slate-600 shadow">
-                  Enter a trip to compare up to three truck routes.
-                </p>
-              </div>
-            )}
-            {planMutation.isPending && (
-              <div className="absolute inset-0 grid place-items-center bg-white/40 backdrop-blur-[1px]" aria-live="polite">
-                <p className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" aria-hidden />
-                  Planning routes and sampling forecasts…
-                </p>
-              </div>
-            )}
-          </MapView>
+      <aside className="relative z-10 p-3 lg:absolute lg:top-3 lg:bottom-3 lg:left-3 lg:w-[430px] lg:p-0">
+        <div className="lg:glass flex flex-col lg:h-full lg:overflow-hidden lg:rounded-3xl">
+          <div className="hidden border-b border-slate-200/70 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 px-4 py-3.5 text-white lg:block">
+            <Brand />
           </div>
-          {plan && (
-              <ForecastPanel
-                map={map}
-                heatmap={heatmapQuery.data}
-                loading={heatmapQuery.isPending}
-                error={heatmapQuery.isError ? errorMessage(heatmapQuery.error) : null}
-                focusTime={selectedCheckpoint?.eta ?? null}
-                tripHours={selectedRoute ? selectedRoute.duration_s / 3600 : null}
-              />
+          <div className="space-y-3 lg:flex-1 lg:overflow-y-auto lg:p-3">
+            <section className="card-3d rounded-2xl p-3.5">
+              <TripForm onSubmit={(trip) => planMutation.mutate(trip)} submitting={planMutation.isPending} />
+            </section>
+
+            {planMutation.isError && (
+              <div role="alert" className="animate-rise rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 shadow-sm">
+                <p className="font-semibold">Could not plan this trip</p>
+                <p className="mt-0.5">{errorMessage(planMutation.error)}</p>
+              </div>
             )}
-        </main>
-      </div>
+
+            {planMutation.isPending && <ResultsSkeleton />}
+
+            {plan && !planMutation.isPending && (
+              <>
+                <Recommendation plan={plan} />
+                <Notices notices={plan.notices} />
+                <p className="px-1 text-xs text-slate-500">
+                  Departing {formatDateTime(plan.request.departure_time)} · {plan.request.load_weight_lb.toLocaleString()} lb ·
+                  checkpoints every {plan.request.sample_interval_mi} mi
+                </p>
+                <RouteCards plan={plan} selectedRouteId={selectedRouteId} onSelectRoute={selectRoute} />
+                {selectedRoute && selectedCheckpoint && (
+                  <CheckpointPanel
+                    key={`${selectedRoute.id}-${selectedCheckpoint.seq}`}
+                    route={selectedRoute}
+                    checkpoint={selectedCheckpoint}
+                    loadWeightLb={plan.request.load_weight_lb}
+                    onStep={setSelectedSeq}
+                    onClose={() => setSelectedSeq(null)}
+                  />
+                )}
+                {selectedRoute && (
+                  <section aria-label="Checkpoint list">
+                    <h2 className="mb-1.5 px-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                      {selectedRoute.label} checkpoints ({selectedRoute.checkpoints.length})
+                    </h2>
+                    <CheckpointTable route={selectedRoute} selectedSeq={selectedSeq} onSelect={setSelectedSeq} />
+                  </section>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </aside>
     </div>
   )
 }

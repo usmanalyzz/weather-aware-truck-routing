@@ -77,15 +77,15 @@ export function PlaceInput({ label, value, onChange, error, placeholder }: Place
         onFocus={() => setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
         onKeyDown={onKeyDown}
-        className={`w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-blue-500 ${
-          error ? 'border-red-400' : 'border-slate-300'
+        className={`w-full rounded-xl border bg-white/90 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/15 ${
+          error ? 'border-red-400' : 'border-slate-200'
         }`}
       />
       {showList && (
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 text-sm shadow-lg"
+          className="absolute z-30 mt-1.5 max-h-64 w-full overflow-auto rounded-xl border border-slate-200 bg-white/95 py-1 text-sm shadow-2xl backdrop-blur"
         >
           {isError && <li className="px-3 py-2 text-red-600">Address search is unavailable.</li>}
           {!isError && results.length === 0 && <li className="px-3 py-2 text-slate-500">Searching…</li>}

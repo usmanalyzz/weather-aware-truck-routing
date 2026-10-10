@@ -1,5 +1,5 @@
 import type { ExpressionSpecification } from 'maplibre-gl'
-import type { Feature, FeatureCollection, Point } from 'geojson'
+import type { Feature, FeatureCollection, Point, Polygon } from 'geojson'
 import type { Heatmap, HeatmapMetric } from '../../api/types'
 import { RISK_COLORS, RISK_LEVELS } from '../../lib/risk'
 
@@ -101,4 +101,47 @@ export function timeForHour(heatmap: Heatmap, hour: number): string {
 export function horizonHour(heatmap: Heatmap): number | null {
   const i = heatmap.available_hours.indexOf(false)
   return i === -1 ? null : i
+}
+
+/*
+ * 3D view: each grid point becomes a square column. Height grows with severity relative to the
+ * No Travel threshold, so a 50 mph column is visibly taller than a 20 mph one. Like the 2D discs,
+ * the cells are uploaded once and the slider only swaps expressions.
+ */
+const MIN_COLUMN_M = 3_000
+const MAX_COLUMN_M = 110_000
+
+export function toCellCollection(heatmap: Heatmap): FeatureCollection<Polygon> {
+  const half = heatmap.grid.spacing_mi * 0.42 // leave a gap so columns read as distinct bars
+  return {
+    type: 'FeatureCollection',
+    features: toFeatureCollection(heatmap).features.map((point): Feature<Polygon> => {
+      const [lon, lat] = point.geometry.coordinates
+      const dLat = half / 69.09
+      const dLon = half / (69.17 * Math.cos((lat * Math.PI) / 180))
+      const ring = [
+        [lon - dLon, lat - dLat],
+        [lon + dLon, lat - dLat],
+        [lon + dLon, lat + dLat],
+        [lon - dLon, lat + dLat],
+        [lon - dLon, lat - dLat],
+      ]
+      return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: point.properties }
+    }),
+  }
+}
+
+export function heightExpression(metric: HeatmapMetric, hour: number, heatmap: Heatmap): ExpressionSpecification {
+  const noTravel = thresholds(metric, heatmap)[3]
+  const ratio: ExpressionSpecification = ['min', ['/', ['max', valueExpr(metric, hour), 0], noTravel], 1.25]
+  return ['+', MIN_COLUMN_M, ['*', ratio, MAX_COLUMN_M - MIN_COLUMN_M]]
+}
+
+/**
+ * Columns only for Moderate-or-worse cells with data (fill-extrusion opacity cannot vary per feature).
+ * Calm cells would carpet the corridor and hide the routes without adding information.
+ */
+export function columnFilter(metric: HeatmapMetric, hour: number, heatmap: Heatmap): ExpressionSpecification {
+  const key = propertyKey(metric, hour)
+  return ['all', ['has', key], ['>=', ['get', key], thresholds(metric, heatmap)[0]]]
 }

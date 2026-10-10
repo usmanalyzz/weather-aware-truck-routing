@@ -17,10 +17,10 @@ export function CheckpointTable({ route, selectedSeq, onSelect }: CheckpointTabl
   }, [selectedSeq])
 
   return (
-    <div className="max-h-72 overflow-auto rounded-xl border border-slate-200 bg-white">
+    <div className="card-3d max-h-72 overflow-auto rounded-2xl">
       <table className="w-full text-left text-xs">
         <caption className="sr-only">Checkpoints along {route.label}</caption>
-        <thead className="sticky top-0 bg-slate-50 text-[11px] tracking-wide text-slate-500 uppercase">
+        <thead className="sticky top-0 bg-slate-50/95 text-[10px] tracking-wider text-slate-500 uppercase backdrop-blur">
           <tr>
             <th className="px-2 py-1.5 font-medium">Mile</th>
             <th className="px-2 py-1.5 font-medium">ETA</th>
