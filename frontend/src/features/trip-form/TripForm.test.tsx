@@ -76,3 +76,39 @@ describe('TripForm', () => {
     expect(screen.getByRole('button', { name: /planning routes/i })).toBeDisabled()
   })
 })
+
+describe('example trips', () => {
+  it('fill the form and plan in one click', async () => {
+    const onSubmit = vi.fn()
+    renderWithClient(<TripForm onSubmit={onSubmit} submitting={false} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dallas → Atlanta' }))
+
+    expect(screen.getByRole('combobox', { name: /origin/i })).toHaveValue('Dallas, TX, United States')
+    expect(screen.getByRole('combobox', { name: /destination/i })).toHaveValue('Atlanta, GA, United States')
+    expect(screen.getByLabelText(/load weight/i)).toHaveValue(30000)
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        origin: expect.objectContaining({ label: 'Dallas, TX, United States' }),
+        destination: expect.objectContaining({ label: 'Atlanta, GA, United States' }),
+        load_weight_lb: 30000,
+        sample_interval_mi: 25,
+      }),
+    )
+  })
+
+  it('replace a past departure with the next hour', async () => {
+    const onSubmit = vi.fn()
+    renderWithClient(<TripForm onSubmit={onSubmit} submitting={false} initial={{ departure: '2020-01-01T00:00' }} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Chicago → Denver' }))
+
+    const departure = new Date(onSubmit.mock.calls[0][0].departure_time)
+    expect(departure.getTime()).toBeGreaterThan(Date.now())
+  })
+
+  it('are disabled while a plan is running', () => {
+    renderWithClient(<TripForm onSubmit={vi.fn()} submitting />)
+    expect(screen.getByRole('button', { name: 'Chicago → Denver' })).toBeDisabled()
+  })
+})

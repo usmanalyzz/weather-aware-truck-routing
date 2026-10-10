@@ -94,6 +94,8 @@ export interface Heatmap {
   points: [number, number][]
   values: Record<HeatmapMetric, (number | null)[][]>
   available_hours: boolean[]
+  /** False when part of the grid could not be loaded (e.g. weather service busy); retrying fills it in. */
+  complete: boolean
   scales: Record<Exclude<HeatmapMetric, 'risk'>, { values: number[]; no_travel_inclusive: boolean }>
   notices: string[]
 }

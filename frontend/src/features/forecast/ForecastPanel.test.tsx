@@ -128,6 +128,24 @@ describe('ForecastPanel', () => {
     expect(map.setFilter).toHaveBeenLastCalledWith(COLUMNS_LAYER, ['all', ['has', 'r20'], ['>=', ['get', 'r20'], 1]])
   })
 
+  it('offers a retry when the weather service is busy', async () => {
+    const onRetry = vi.fn()
+    renderPanel({ heatmap: undefined, error: 'The weather service is busy right now.', onRetry })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/busy/)
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it('flags an incomplete grid and offers a retry', async () => {
+    const onRetry = vi.fn()
+    renderPanel({ heatmap: { ...heatmap, complete: false }, onRetry })
+
+    expect(screen.getByText(/part of the corridor forecast couldn't load/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
   it('shows loading and error states', () => {
     const { rerender, asMap } = renderPanel({ heatmap: undefined, loading: true })
     expect(screen.getByText(/loading corridor forecast/i)).toBeInTheDocument()

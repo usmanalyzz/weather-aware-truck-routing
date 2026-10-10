@@ -16,7 +16,7 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
 | Backend | Python 3.12 · **Django 5.2** · **Django REST Framework** · httpx |
 | Frontend | **React** · TypeScript · Vite · Tailwind CSS · TanStack Query · MapLibre GL JS |
 | Providers | HERE Routing v8 (truck mode) + Autosuggest · Open-Meteo hourly forecast · OpenFreeMap tiles |
-| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 64 Vitest/RTL tests · GitHub Actions CI |
+| Quality | 183 pytest tests (100 % branch coverage on the rule engine) · 71 Vitest/RTL tests · GitHub Actions CI |
 
 ---
 
@@ -42,6 +42,7 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
    whose height is how close conditions are to the No Travel threshold, animated by the same slider.
 
 **UX details:**
+* one-click **example trips** (Chicago → Denver, Dallas → Atlanta, Denver → Salt Lake City);
 * branded splash on load (bounded to 1.4–3.5 s, never blocking);
 * routes that draw themselves on the map;
 * the map flies to a selected checkpoint;
@@ -200,8 +201,8 @@ npm run dev
 ## Tests and quality
 
 ```bash
-cd backend  && ruff check . && pytest --cov           # 174 tests
-cd frontend && npm run lint && npm test && npm run build   # 64 tests, typecheck + build
+cd backend  && ruff check . && pytest --cov           # 183 tests
+cd frontend && npm run lint && npm test && npm run build   # 71 tests, typecheck + build
 ```
 
 * **Backend:**
@@ -233,9 +234,11 @@ Step-by-step instructions: **[docs/deployment.md](docs/deployment.md)**.
 * **Sampling:** a small storm cell between two checkpoints can be missed. A 10-mile interval reduces this.
 * **ETAs** use HERE's typical speeds for the departure time. Hours-of-service breaks, fuel stops and weather slow-downs
   are not modelled.
-* **Free tiers:** Render sleeps when idle (first request ~30–60 s; the app pings on load to wake it). Open-Meteo's free
-  tier allows 10,000 calls/day. Whether multi-location requests count per location is undocumented, so heatmaps are
-  cached and degrade gracefully if throttled.
+* **Free tiers:**
+  * Render sleeps when idle; the first request takes ~30–60 s, and the app pings on load to wake it.
+  * Open-Meteo counts every location toward 600/minute and 10,000/day. This was found in live testing, so forecasts are
+    cached per cell and day across trips, and a built-in budget keeps requests under the limit.
+  * A busy weather service gets a clear "try again in a minute" message instead of a failed or misleading plan.
 * **Coverage:** address search is limited to the US and Canada, matching the mph/inch units and HRRR/GFS coverage.
 
 ## Data and attribution

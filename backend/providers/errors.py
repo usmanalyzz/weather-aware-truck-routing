@@ -36,3 +36,11 @@ class WeatherUnavailable(ProviderError):
 class GeocodingUnavailable(ProviderError):
     code = "GEOCODING_UNAVAILABLE"
     public_message = "Address search is unavailable. Please try again shortly."
+
+
+class WeatherBusy(WeatherUnavailable):
+    """Open-Meteo's free-tier rate limit was reached (or our own budget for it)."""
+
+    code = "WEATHER_BUSY"
+    status = 503
+    public_message = "The weather service is busy right now. Please try again in a minute."

@@ -69,8 +69,15 @@ separated it from the winner.
   what it has and says so; it never invents routes.
 * **Distances** come from the decoded route geometry, so checkpoint miles and route distance always agree.
   The map gets a simplified copy of each line, but every calculation uses the full-resolution geometry.
-* **Forecast requests:** points are snapped to a 0.05° grid (~3.5 mi, finer than the HRRR/GFS model grids), batched
-  50 per request, and cached per cell + exact hour window + current hour. A forecast is never reused for a different time.
+* **Forecast requests:** points are snapped to a 0.05° grid (~3.5 mi, finer than the HRRR/GFS model grids) and batched
+  50 per request. They're cached **per cell and UTC day**, keyed with the current hour, so any trip crossing the same
+  cells on the same days within the hour reuses them, and nothing is served after the model hour changes.
+* **Rate budget:** live testing showed Open-Meteo counts *every location* in a request toward its free limit
+  (600/minute). Without a limit, two or three trips in a minute were rejected with 429. Each batch now reserves its
+  locations in a sliding one-minute window (540/minute, `OPEN_METEO_LOCATIONS_PER_MINUTE`) and waits briefly for room.
+  If the wait would exceed 12 s, or the provider still answers 429 after one Retry-After retry, the API returns
+  **503 WEATHER_BUSY** ("try again in a minute"). A total weather outage deliberately does not produce a
+  recommendation from routes with no weather data. A partial outage only marks the affected checkpoints Unknown.
 * **Forecast horizon:** Open-Meteo rejects hours past its ~16-day horizon, so requests are clamped. Checkpoints beyond
   the horizon are Unknown. Departures are limited to the next 13 days so the 48 h heatmap and the trip itself stay inside.
 * **Failures:** a failed weather batch marks only its checkpoints Unknown and adds a notice. Provider timeouts and
@@ -78,7 +85,8 @@ separated it from the winner.
 
 ## Corridor heatmap — `backend/routing/corridor.py`, `backend/trips/services/heatmap.py`
 
-* **Grid:** points on a regular grid in **miles** (15 mi spacing, widened automatically to stay ≤ `HEATMAP_MAX_POINTS`)
+* **Grid:** points on a regular grid in **miles** (15 mi spacing, widened automatically to stay ≤ `HEATMAP_MAX_POINTS`,
+  default 260, about 20 mi apart on a 1,000 mi trip)
   within 40 mi of any route. Because every point covers the same area, heatmap colour reflects forecast values,
   not point density.
 * **Values:** for each point and each hour 0–48 after departure: wind (mph), rain and snow (in/hr) and the risk level
@@ -88,9 +96,9 @@ separated it from the winner.
   time shown. Hours past the provider's horizon are `null` and drawn blank, never filled in.
 * **Reuse:** the heatmap takes the same request as the plan and reuses the cached plan, so no extra routing call is made.
   Results are cached for 10 minutes per trip, and corridor forecasts per cell for 1 hour.
-* **Quota caveat:** Open-Meteo's docs don't say whether a multi-location request counts as one call or one per location.
-  Assuming the worst case, an uncached heatmap costs about 550 of the free tier's 10,000 daily calls. If the provider throttles,
-  only the overlay fails; routes, risk and the recommendation are unaffected.
+* **Quota:** confirmed in live testing that each location counts as one call. An uncached trip costs roughly 100–250
+  checkpoint cells plus ~260 heatmap cells. The free tier also caps 10,000 calls/day, so repeated demo trips rely on the
+  shared cache. If the overlay is throttled, the panel offers a Retry button and routes and risk are unaffected.
 * **Rendering:** each grid point is drawn as a soft, blurred disc about 1.3× the grid spacing wide, so neighbouring
   points blend into a continuous field. Colour is the point's own value, banded by the risk rules (thresholds are
   served by the API). We chose this over MapLibre's kernel-density `heatmap` layer because density colour depends on

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import type { SampleInterval, TripRequest } from '../../api/types'
 import { nextHour, toLocalInputValue } from '../../lib/format'
+import { EXAMPLE_TRIPS } from './examples'
 import { PlaceInput } from './PlaceInput'
 import { type TripFormErrors, type TripFormValues, MAX_LOAD_LB, toTripRequest, validateTrip } from './validation'
 
 const INTERVALS: SampleInterval[] = [10, 25, 50]
+
 
 interface TripFormProps {
   onSubmit: (trip: TripRequest) => void
@@ -28,6 +30,23 @@ export function TripForm({ onSubmit, submitting, initial }: TripFormProps) {
     const next = { ...values, [key]: value }
     setValues(next)
     if (touched) setErrors(validateTrip(next))
+  }
+
+  function runExample(example: (typeof EXAMPLE_TRIPS)[number]) {
+    const next: TripFormValues = {
+      ...values,
+      origin: example.origin,
+      destination: example.destination,
+      loadWeight: example.loadWeight,
+      interval: example.interval,
+    }
+    // Keep a valid departure the user chose; otherwise depart at the next full hour.
+    if (validateTrip(next).departure) next.departure = toLocalInputValue(nextHour())
+    setValues(next)
+    setTouched(true)
+    const found = validateTrip(next)
+    setErrors(found)
+    if (Object.keys(found).length === 0) onSubmit(toTripRequest(next))
   }
 
   function submit(event: React.FormEvent) {
@@ -141,6 +160,21 @@ export function TripForm({ onSubmit, submitting, initial }: TripFormProps) {
       >
         {submitting ? 'Planning routes…' : 'Plan routes'}
       </button>
+
+      <div className="flex flex-wrap items-center gap-1.5 pt-0.5" role="group" aria-label="Example trips">
+        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Try an example</span>
+        {EXAMPLE_TRIPS.map((example) => (
+          <button
+            key={example.name}
+            type="button"
+            disabled={submitting}
+            onClick={() => runExample(example)}
+            className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 transition hover:-translate-y-px hover:border-indigo-300 hover:bg-indigo-100 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
+          >
+            {example.name}
+          </button>
+        ))}
+      </div>
     </form>
   )
 }

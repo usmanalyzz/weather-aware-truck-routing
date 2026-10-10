@@ -79,7 +79,11 @@ CORS_ALLOWED_ORIGINS = env_list("CORS_ALLOWED_ORIGINS")
 # Third-party providers (keys are only ever used server-side).
 HERE_API_KEY = os.environ.get("HERE_API_KEY", "")
 TRUCK_TARE_WEIGHT_LB = int(os.environ.get("TRUCK_TARE_WEIGHT_LB", "35000"))
-HEATMAP_MAX_POINTS = int(os.environ.get("HEATMAP_MAX_POINTS", "600"))
+HEATMAP_MAX_POINTS = int(os.environ.get("HEATMAP_MAX_POINTS", "160"))
+# Open-Meteo's free tier counts each location: stay below its 600/minute limit.
+OPEN_METEO_LOCATIONS_PER_MINUTE = int(os.environ.get("OPEN_METEO_LOCATIONS_PER_MINUTE", "570"))
+OPEN_METEO_MAX_WAIT_S = float(os.environ.get("OPEN_METEO_MAX_WAIT_S", "15"))
+HEATMAP_MAX_WAIT_S = float(os.environ.get("HEATMAP_MAX_WAIT_S", "40"))
 
 LOGGING = {
     "version": 1,

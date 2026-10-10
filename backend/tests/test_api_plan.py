@@ -229,6 +229,20 @@ def test_weather_outage_returns_502(api):
     assert response.json()["error"]["code"] == "WEATHER_UNAVAILABLE"
 
 
+@respx.mock
+def test_weather_rate_limit_returns_busy_message(api):
+    respx.get(here.ROUTES_URL).mock(return_value=httpx.Response(200, json=here_routes((NORTH, 3600))))
+    respx.get(openmeteo.FORECAST_URL).mock(return_value=httpx.Response(429, json={"error": True}))
+
+    response = api()
+
+    assert response.status_code == 503
+    assert response.json()["error"] == {
+        "code": "WEATHER_BUSY",
+        "message": "The weather service is busy right now. Please try again in a minute.",
+    }
+
+
 @pytest.mark.parametrize(
     ("overrides", "field"),
     [

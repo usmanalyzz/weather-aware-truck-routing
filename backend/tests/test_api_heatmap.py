@@ -131,3 +131,23 @@ def test_heatmap_validates_like_plan(client):
 
     assert response.status_code == 400
     assert "departure_time" in response.json()["error"]["fields"]
+
+
+@respx.mock
+def test_incomplete_heatmap_is_not_cached_so_retry_fills_it(client, monkeypatch):
+    from providers import openmeteo as om
+    from providers.ratelimit import LocationBudget
+
+    mock()
+    post(client, "/api/trips/plan")
+    # No budget left this minute: grid batches are skipped.
+    monkeypatch.setattr(om, "budget", LocationBudget(per_minute=1, max_wait_s=0))
+    om.budget.acquire(1)
+    first = post(client, "/api/trips/heatmap")
+    assert first.status_code == 503 or first.json()["complete"] is False
+
+    # Budget available again: the retry is recomputed, not served from cache.
+    monkeypatch.setattr(om, "budget", LocationBudget(per_minute=10**9, max_wait_s=0))
+    second = post(client, "/api/trips/heatmap").json()
+    assert second["complete"] is True
+    assert second["notices"] == []

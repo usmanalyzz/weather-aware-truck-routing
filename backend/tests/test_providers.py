@@ -11,8 +11,10 @@ from providers.errors import (
     NoRouteFound,
     ProviderTimeout,
     RoutingUnavailable,
+    WeatherBusy,
     WeatherUnavailable,
 )
+from providers.ratelimit import BudgetExceeded, LocationBudget
 from tests.factories import here_routes, here_section, line, openmeteo_handler
 
 NOW = datetime(2026, 10, 10, 12, 0, tzinfo=UTC)
@@ -193,10 +195,12 @@ def test_fetch_forecasts_parses_units_and_sums_rain_and_showers():
 
     assert list(result.series) == [(41.0, -90.0)]  # both points snap to one cell
     series = result.series[(41.0, -90.0)]
-    assert series.start == DEP
-    assert len(series) == 4
-    assert series.rain_in[0] == pytest.approx(0.12)
-    assert series.wind_mph[0] == 30.0
+    day = DEP.replace(hour=0)
+    assert series.start == day  # whole UTC days are fetched and cached
+    assert len(series) == 24
+    assert series.index_of(DEP) == DEP.hour
+    assert series.rain_in[DEP.hour] == pytest.approx(0.12)
+    assert series.wind_mph[DEP.hour] == 30.0
 
 
 @respx.mock
@@ -215,15 +219,26 @@ def test_fetch_forecasts_batches_and_caches():
 
 
 @respx.mock
-def test_cache_is_keyed_by_time_window():
+def test_cache_is_shared_across_trips_on_the_same_days_and_refreshed_hourly():
     calls = []
     respx.get(openmeteo.FORECAST_URL).mock(side_effect=openmeteo_handler(calls=calls))
+    cell = [(41.0, -90.0)]
 
-    openmeteo.fetch_forecasts([(41.0, -90.0)], DEP, DEP + timedelta(hours=2), NOW)
-    openmeteo.fetch_forecasts([(41.0, -90.0)], DEP + timedelta(hours=1), DEP + timedelta(hours=3), NOW)
-    openmeteo.fetch_forecasts([(41.0, -90.0)], DEP, DEP + timedelta(hours=2), NOW + timedelta(hours=1))
+    openmeteo.fetch_forecasts(cell, DEP, DEP + timedelta(hours=2), NOW)
+    # A different trip window on the same UTC day: served from cache.
+    later = openmeteo.fetch_forecasts(cell, DEP + timedelta(hours=5), DEP + timedelta(hours=9), NOW)
+    assert len(calls) == 1
+    assert later.series[(41.0, -90.0)].index_of(DEP + timedelta(hours=9)) is not None
 
-    assert len(calls) == 3  # different window, then a newer model hour: never reused
+    # A window reaching into the next day fetches only that day.
+    openmeteo.fetch_forecasts(cell, DEP, DEP + timedelta(days=1), NOW)
+    assert len(calls) == 2
+    next_day = (DEP + timedelta(days=1)).replace(hour=0)
+    assert calls[1]["start_hour"] == next_day.strftime("%Y-%m-%dT%H:%M")
+
+    # A newer model hour never reuses older forecasts.
+    openmeteo.fetch_forecasts(cell, DEP, DEP + timedelta(hours=2), NOW + timedelta(hours=1))
+    assert len(calls) == 3
 
 
 @respx.mock
@@ -237,7 +252,32 @@ def test_window_is_clamped_to_forecast_horizon():
     )
 
     assert calls[0]["end_hour"] == horizon.strftime("%Y-%m-%dT%H:%M")
-    assert len(result.series[(41.0, -90.0)]) == 3
+    series = result.series[(41.0, -90.0)]
+    assert series.end() == horizon  # nothing past the horizon is ever fetched or invented
+
+
+@respx.mock
+def test_rate_limit_from_provider_becomes_weather_busy():
+    route = respx.get(openmeteo.FORECAST_URL).mock(
+        return_value=httpx.Response(
+            429, headers={"Retry-After": "1"}, json={"error": True, "reason": "limit"}
+        )
+    )
+
+    with pytest.raises(WeatherBusy) as err:
+        openmeteo.fetch_forecasts([(41.0, -90.0)], DEP, DEP + timedelta(hours=1), NOW)
+    assert route.call_count == 2  # retried once after Retry-After
+    assert err.value.status == 503
+
+
+def test_own_budget_exhaustion_becomes_weather_busy(monkeypatch):
+    budget = LocationBudget(per_minute=10, max_wait_s=0)
+    budget.acquire(10)  # other trips already used this minute's allowance
+    monkeypatch.setattr(openmeteo, "budget", budget)
+    points = [(40.0 + i * 0.1, -90.0) for i in range(5)]
+
+    with pytest.raises(WeatherBusy):
+        openmeteo.fetch_forecasts(points, DEP, DEP + timedelta(hours=1), NOW)
 
 
 def test_window_entirely_beyond_horizon_makes_no_request():
@@ -304,3 +344,71 @@ def test_parse_location_handles_null_values():
 
     assert series.rain_in == [None]
     assert series.wind_mph == [None]
+
+
+# --- rate budget -------------------------------------------------------------------------------
+
+
+class FakeClock:
+    def __init__(self):
+        self.now = 0.0
+        self.slept = []
+
+    def __call__(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.slept.append(seconds)
+        self.now += seconds
+
+
+def test_budget_allows_up_to_limit_within_a_minute():
+    clock = FakeClock()
+    budget = LocationBudget(per_minute=100, max_wait_s=0, clock=clock, sleep=clock.sleep)
+
+    budget.acquire(60)
+    budget.acquire(40)
+    assert budget.used() == 100
+    with pytest.raises(BudgetExceeded):
+        budget.acquire(1)
+
+
+def test_budget_waits_for_the_window_to_free_up():
+    clock = FakeClock()
+    budget = LocationBudget(per_minute=100, max_wait_s=30, clock=clock, sleep=clock.sleep)
+
+    budget.acquire(80)  # t=0
+    clock.now = 40
+    budget.acquire(20)  # t=40, window full
+    budget.acquire(50)  # must wait until the t=0 entry expires at t=60
+
+    assert clock.slept == [pytest.approx(20)]
+    assert budget.used() == 70
+
+
+def test_budget_fails_fast_when_the_wait_is_too_long():
+    clock = FakeClock()
+    budget = LocationBudget(per_minute=100, max_wait_s=5, clock=clock, sleep=clock.sleep)
+
+    budget.acquire(100)
+    with pytest.raises(BudgetExceeded):
+        budget.acquire(10)  # would need ~60 s
+    assert clock.slept == []
+
+
+def test_oversized_batch_uses_the_whole_window():
+    clock = FakeClock()
+    budget = LocationBudget(per_minute=100, max_wait_s=0, clock=clock, sleep=clock.sleep)
+
+    budget.acquire(250)
+    assert budget.used() == 100
+
+
+def test_per_call_wait_override():
+    clock = FakeClock()
+    budget = LocationBudget(per_minute=100, max_wait_s=1, clock=clock, sleep=clock.sleep)
+    budget.acquire(100)
+
+    budget.acquire(10, max_wait_s=90)  # e.g. the background heatmap: waits for the window instead of failing
+
+    assert clock.slept == [pytest.approx(60)]

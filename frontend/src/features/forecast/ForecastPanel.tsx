@@ -36,6 +36,7 @@ interface ForecastPanelProps {
   tripHours: number | null
   /** Show weather as extruded 3D columns instead of a flat field. */
   view3d?: boolean
+  onRetry?: () => void
 }
 
 function ensureLayer(map: MapLibreMap) {
@@ -72,7 +73,16 @@ function describePoint(heatmap: Heatmap, index: number, hour: number): string[] 
   ]
 }
 
-export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHours, view3d = false }: ForecastPanelProps) {
+export function ForecastPanel({
+  map,
+  heatmap,
+  loading,
+  error,
+  focusTime,
+  tripHours,
+  view3d = false,
+  onRetry,
+}: ForecastPanelProps) {
   const [hour, setHour] = useState(0)
   const [metric, setMetric] = useState<HeatmapMetric>('risk')
   const [visible, setVisible] = useState(true)
@@ -188,7 +198,35 @@ export function ForecastPanel({ map, heatmap, loading, error, focusTime, tripHou
       </div>
 
       {loading && <p className="py-2 text-xs text-slate-600">Loading corridor forecast…</p>}
-      {error && !loading && <p className="py-2 text-xs text-red-700">Forecast overlay unavailable: {error}</p>}
+      {error && !loading && (
+        <div className="flex items-center gap-3 py-1.5" role="alert">
+          <p className="text-xs text-red-700">Forecast overlay unavailable: {error}</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="ml-auto shrink-0 rounded-lg border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
+
+      {heatmap && !heatmap.complete && (
+        <div className="mb-2 flex items-center gap-3 rounded-lg bg-amber-50 px-2 py-1.5 text-xs text-amber-900" role="status">
+          <span>Part of the corridor forecast couldn't load (weather service busy); those areas are blank.</span>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="ml-auto shrink-0 rounded-md border border-amber-300 bg-white px-2 py-0.5 font-semibold hover:bg-amber-100"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
 
       {heatmap && (
         <>

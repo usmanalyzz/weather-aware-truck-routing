@@ -52,7 +52,8 @@ def build_heatmap(req: TripRequest, plan: dict, now: datetime | None = None) -> 
     start = _parse(plan["forecast_window"]["start"])
     end = _parse(plan["forecast_window"]["end"])
 
-    forecast = openmeteo.fetch_forecasts(cells, start, end, now)
+    # Loads in the background after the routes are shown, so it may wait longer for rate budget.
+    forecast = openmeteo.fetch_forecasts(cells, start, end, now, max_wait_s=settings.HEATMAP_MAX_WAIT_S)
 
     values: dict[str, list[list]] = {"risk": [], "wind_mph": [], "rain_in_hr": [], "snow_in_hr": []}
     for cell in cells:
@@ -63,6 +64,7 @@ def build_heatmap(req: TripRequest, plan: dict, now: datetime | None = None) -> 
     notices = []
     if forecast.failed_cells:
         notices.append("Part of the corridor forecast could not be loaded; those areas are left blank.")
+    complete = not forecast.failed_cells
     if not all(available):
         first_missing = available.index(False)
         notices.append(f"Forecast data ends {first_missing} h after departure (provider horizon).")
@@ -78,6 +80,7 @@ def build_heatmap(req: TripRequest, plan: dict, now: datetime | None = None) -> 
         "available_hours": available,
         "scales": THRESHOLDS,
         "notices": notices,
+        "complete": complete,
     }
 
 
@@ -87,5 +90,7 @@ def heatmap_cached(req: TripRequest) -> dict:
     result = cache.get(key)
     if result is None:
         result = build_heatmap(req, plan, now=_parse(plan["generated_at"]))
-        cache.set(key, result, timeout=HEATMAP_CACHE_TTL_S)
+        # Only complete grids are cached, so a retry can fill in areas that were skipped.
+        if result["complete"]:
+            cache.set(key, result, timeout=HEATMAP_CACHE_TTL_S)
     return result

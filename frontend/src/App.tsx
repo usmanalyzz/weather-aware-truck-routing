@@ -98,6 +98,7 @@ export default function App() {
             focusTime={selectedCheckpoint?.eta ?? null}
             tripHours={selectedRoute ? selectedRoute.duration_s / 3600 : null}
             view3d={view3d}
+            onRetry={() => void heatmapQuery.refetch()}
           />
         </div>
       )}

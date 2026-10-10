@@ -17,6 +17,12 @@ export function PlaceInput({ label, value, onChange, error, placeholder }: Place
   const id = useId()
   const listId = `${id}-list`
   const [text, setText] = useState(value?.label ?? '')
+  // Follow places set from outside (e.g. an example trip) without overwriting what the user is typing.
+  const [syncedLabel, setSyncedLabel] = useState(value?.label)
+  if (value && value.label !== syncedLabel) {
+    setSyncedLabel(value.label)
+    setText(value.label)
+  }
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
   const query = useDebouncedValue(text.trim(), 250)
