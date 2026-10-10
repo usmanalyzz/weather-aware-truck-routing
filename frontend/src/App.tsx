@@ -56,6 +56,12 @@ export default function App() {
     setSelectedRouteId(id)
   }
 
+  /** From the map a checkpoint of any route can be picked; that also selects its route. */
+  function selectCheckpoint(seq: number, routeId?: string) {
+    if (routeId) setSelectedRouteId(routeId)
+    setSelectedSeq(seq)
+  }
+
   return (
     <div className="min-h-dvh bg-gradient-to-b from-slate-100 to-slate-200 text-slate-900 lg:relative lg:h-dvh lg:overflow-hidden">
       <Splash ready={map !== null} />
@@ -72,7 +78,7 @@ export default function App() {
           selectedRouteId={selectedRouteId}
           selectedSeq={selectedSeq}
           onSelectRoute={selectRoute}
-          onSelectCheckpoint={setSelectedSeq}
+          onSelectCheckpoint={selectCheckpoint}
           onMapReady={setMap}
           view3d={view3d}
         >

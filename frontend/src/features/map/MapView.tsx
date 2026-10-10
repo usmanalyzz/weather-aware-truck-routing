@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import type { TripPlan } from '../../api/types'
 import { formatDateTime } from '../../lib/format'
 import { RISK_LABELS } from '../../lib/risk'
-import { EMPTY, checkpointFeatures, endpointFeatures, planBounds, routeFeatures } from './geojson'
+import { EMPTY, checkpointFeatures, endpointFeatures, planBounds, routeFeatures, routeLabelFeatures } from './geojson'
 import { OVERLAY_BEFORE_LAYER } from './layers'
 
 // Map renderer: MapLibre GL. Tiles: OpenFreeMap (free, no key), CARTO Positron as a fallback.
@@ -16,6 +16,17 @@ const TERRAIN_SOURCE = 'terrain-dem'
 const HILLSHADE_LAYER = 'terrain-hillshade'
 const VIEW_3D = { pitch: 58, bearing: -12 }
 const DRAW_MS = 1100
+const CHECKPOINT_LAYERS = ['checkpoints-circle', 'checkpoints-other'] as const
+
+/** Checkpoints and route labels appear only after the route-drawing animation. */
+function setMarkersVisible(map: MapLibreMap, visible: boolean) {
+  const v = visible ? 1 : 0
+  map.setPaintProperty('checkpoints-circle', 'circle-opacity', v)
+  map.setPaintProperty('checkpoints-circle', 'circle-stroke-opacity', v)
+  map.setPaintProperty('checkpoints-other', 'circle-opacity', 0.8 * v)
+  map.setPaintProperty('checkpoints-other', 'circle-stroke-opacity', 0.8 * v)
+  map.setLayoutProperty('route-labels', 'visibility', visible ? 'visible' : 'none')
+}
 
 const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
@@ -24,7 +35,7 @@ interface MapViewProps {
   selectedRouteId: string | null
   selectedSeq: number | null
   onSelectRoute: (id: string) => void
-  onSelectCheckpoint: (seq: number) => void
+  onSelectCheckpoint: (seq: number, routeId?: string) => void
   onMapReady?: (map: MapLibreMap) => void
   /** Tilted camera with real terrain relief. */
   view3d?: boolean
@@ -68,10 +79,36 @@ function disable3d(map: MapLibreMap) {
   if (map.getLayer(HILLSHADE_LAYER)) map.setLayoutProperty(HILLSHADE_LAYER, 'visibility', 'none')
 }
 
+/** Stretchable white "pill" behind route labels so lines and dots never run through the text. */
+function addLabelBackground(map: MapLibreMap) {
+  const size = 24
+  const radius = 7
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size * 2
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  ctx.scale(2, 2)
+  ctx.fillStyle = 'rgba(255,255,255,0.94)'
+  ctx.strokeStyle = 'rgba(15,23,42,0.18)'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.roundRect(0.5, 0.5, size - 1, size - 1, radius)
+  ctx.fill()
+  ctx.stroke()
+  map.addImage('label-bg', ctx.getImageData(0, 0, size * 2, size * 2), {
+    pixelRatio: 2,
+    stretchX: [[radius * 2, (size - radius) * 2]],
+    stretchY: [[radius * 2, (size - radius) * 2]],
+    content: [radius * 2, radius * 2, (size - radius) * 2, (size - radius) * 2],
+  })
+}
+
 function addLayers(map: MapLibreMap) {
+  addLabelBackground(map)
   map.addSource('routes', { type: 'geojson', data: EMPTY })
   map.addSource('checkpoints', { type: 'geojson', data: EMPTY })
   map.addSource('endpoints', { type: 'geojson', data: EMPTY })
+  map.addSource('route-labels', { type: 'geojson', data: EMPTY })
 
   map.addLayer({
     id: 'routes-casing',
@@ -92,6 +129,21 @@ function addLayers(map: MapLibreMap) {
     },
   })
   map.addLayer({
+    id: 'checkpoints-other',
+    type: 'circle',
+    source: 'checkpoints',
+    filter: ['==', ['get', 'active'], false],
+    layout: { 'circle-sort-key': ['get', 'sort'] },
+    paint: {
+      'circle-color': ['get', 'color'],
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 2.5, 9, 4.5],
+      'circle-opacity': 0.8,
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 1,
+      'circle-stroke-opacity': 0.8,
+    },
+  })
+  map.addLayer({
     id: 'checkpoints-halo',
     type: 'circle',
     source: 'checkpoints',
@@ -102,6 +154,7 @@ function addLayers(map: MapLibreMap) {
     id: 'checkpoints-circle',
     type: 'circle',
     source: 'checkpoints',
+    filter: ['==', ['get', 'active'], true],
     layout: { 'circle-sort-key': ['get', 'sort'] },
     paint: {
       'circle-color': ['get', 'color'],
@@ -122,6 +175,31 @@ function addLayers(map: MapLibreMap) {
     source: 'endpoints',
     layout: { 'text-field': ['get', 'label'], 'text-size': 11, 'text-font': ['Noto Sans Bold'], 'text-allow-overlap': true },
     paint: { 'text-color': '#ffffff' },
+  })
+  map.addLayer({
+    id: 'route-labels',
+    type: 'symbol',
+    source: 'route-labels',
+    layout: {
+      'text-field': ['get', 'text'],
+      'text-font': ['Noto Sans Bold'],
+      'text-size': ['case', ['get', 'selected'], 12.5, 11],
+      'text-line-height': 1.3,
+      'text-justify': 'left',
+      'text-anchor': 'bottom-left',
+      'text-offset': [0.8, -0.9],
+      'text-max-width': 30,
+      'icon-image': 'label-bg',
+      'icon-text-fit': 'both',
+      'icon-text-fit-padding': [5, 8, 5, 8],
+      'icon-anchor': 'bottom-left',
+      'symbol-sort-key': ['case', ['get', 'selected'], 0, 1],
+    },
+    paint: {
+      'text-color': ['get', 'color'],
+      'text-opacity': ['case', ['get', 'selected'], 1, 0.9],
+      'icon-opacity': ['case', ['get', 'selected'], 1, 0.9],
+    },
   })
 }
 
@@ -161,6 +239,7 @@ export function MapView({
     mapRef.current = map
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right')
 
+    const hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 10, focusAfterOpen: false })
     let usedFallback = false
     map.on('error', (event) => {
       if (!map.loaded() && !usedFallback && /style|fetch/i.test(String(event.error?.message))) {
@@ -170,16 +249,40 @@ export function MapView({
     })
     map.on('load', () => {
       addLayers(map)
-      map.on('click', 'checkpoints-circle', (e) => {
-        const seq = e.features?.[0]?.properties?.seq
-        if (typeof seq === 'number') callbacks.current.onSelectCheckpoint(seq)
-      })
+      for (const layer of CHECKPOINT_LAYERS) {
+        map.on('click', layer, (e) => {
+          const props = e.features?.[0]?.properties
+          if (typeof props?.seq !== 'number') return
+          hoverPopup.remove() // the selection popup replaces the hover tooltip
+          callbacks.current.onSelectCheckpoint(props.seq, props.routeId)
+        })
+        // Hover tooltip with mile, ETA, risk and weather (touch devices use click instead).
+        map.on('mousemove', layer, (e) => {
+          const props = e.features?.[0]?.properties
+          if (!props || props.selected) {
+            hoverPopup.remove()
+            return
+          }
+          const content = document.createElement('div')
+          content.className = 'text-xs'
+          String(props.tooltip)
+            .split('\n')
+            .forEach((line, i) => {
+              const row = document.createElement('div')
+              if (i === 0) row.className = 'font-semibold'
+              row.textContent = line
+              content.append(row)
+            })
+          hoverPopup.setLngLat(e.lngLat).setDOMContent(content).addTo(map)
+        })
+        map.on('mouseleave', layer, () => hoverPopup.remove())
+      }
       map.on('click', 'routes-line', (e) => {
-        if (map.queryRenderedFeatures(e.point, { layers: ['checkpoints-circle'] }).length) return
+        if (map.queryRenderedFeatures(e.point, { layers: [...CHECKPOINT_LAYERS] }).length) return
         const id = e.features?.[0]?.properties?.id
         if (typeof id === 'string') callbacks.current.onSelectRoute(id)
       })
-      for (const layer of ['checkpoints-circle', 'routes-line']) {
+      for (const layer of [...CHECKPOINT_LAYERS, 'routes-line']) {
         map.on('mouseenter', layer, () => (map.getCanvas().style.cursor = 'pointer'))
         map.on('mouseleave', layer, () => (map.getCanvas().style.cursor = ''))
       }
@@ -189,6 +292,7 @@ export function MapView({
 
     return () => {
       popupRef.current?.remove()
+      hoverPopup.remove()
       map.remove()
       mapRef.current = null
     }
@@ -204,8 +308,7 @@ export function MapView({
       return
     }
     drawing.current = true
-    map.setPaintProperty('checkpoints-circle', 'circle-opacity', 0)
-    map.setPaintProperty('checkpoints-circle', 'circle-stroke-opacity', 0)
+    setMarkersVisible(map, false)
     const routes = map.getSource('routes') as GeoJSONSource
     const start = performance.now()
     let frame = requestAnimationFrame(function step(now) {
@@ -224,14 +327,12 @@ export function MapView({
         return
       }
       drawing.current = false
-      map.setPaintProperty('checkpoints-circle', 'circle-opacity', 1)
-      map.setPaintProperty('checkpoints-circle', 'circle-stroke-opacity', 1)
+      setMarkersVisible(map, true)
     })
     return () => {
       cancelAnimationFrame(frame)
       drawing.current = false
-      map.setPaintProperty('checkpoints-circle', 'circle-opacity', 1)
-      map.setPaintProperty('checkpoints-circle', 'circle-stroke-opacity', 1)
+      setMarkersVisible(map, true)
     }
   }, [ready, plan])
 
@@ -268,7 +369,8 @@ export function MapView({
     if (!drawing.current) {
       ;(map.getSource('routes') as GeoJSONSource).setData(plan ? routeFeatures(plan, selectedRouteId) : EMPTY)
     }
-    ;(map.getSource('checkpoints') as GeoJSONSource).setData(checkpointFeatures(route, selectedSeq))
+    ;(map.getSource('checkpoints') as GeoJSONSource).setData(checkpointFeatures(plan, selectedRouteId, selectedSeq))
+    ;(map.getSource('route-labels') as GeoJSONSource).setData(plan ? routeLabelFeatures(plan, selectedRouteId) : EMPTY)
 
     popupRef.current?.remove()
     const cp = route?.checkpoints.find((c) => c.seq === selectedSeq)

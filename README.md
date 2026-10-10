@@ -16,7 +16,7 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
 | Backend | Python 3.12 · **Django 5.2** · **Django REST Framework** · httpx |
 | Frontend | **React** · TypeScript · Vite · Tailwind CSS · TanStack Query · MapLibre GL JS |
 | Providers | HERE Routing v8 (truck mode) + Autosuggest · Open-Meteo hourly forecast · OpenFreeMap tiles |
-| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 61 Vitest/RTL tests · GitHub Actions CI |
+| Quality | 174 pytest tests (100 % branch coverage on the rule engine) · 63 Vitest/RTL tests · GitHub Actions CI |
 
 ---
 
@@ -32,8 +32,12 @@ The forecast is taken at each checkpoint's **estimated arrival time**, the assig
 5. **Risk:** exact thresholds plus the load rules. Every checkpoint lists which rule set its level.
 6. **Recommendation:** strict lexicographic ranking with a one-line reason per runner-up, e.g.
    *"Route B beats Route A: fewer Severe-or-worse miles (0.0 mi vs 12.5 mi)."*
-7. **Map:** all routes, risk-coloured checkpoints, selected-checkpoint details, route summaries, and a corridor
-   weather overlay you can scrub (or play) from departure to +48 h.
+7. **Map:** everything is on the map itself:
+   * all routes;
+   * every route's checkpoints coloured by risk (the selected route's are larger);
+   * hover tooltips with mile, ETA, risk and weather;
+   * a summary label on each route (distance, drive time, Severe/High/No Travel miles, recommended ★);
+   * a corridor weather overlay you can scrub (or play) from departure to +48 h.
 8. **3D view:** a toggle tilts the map over real terrain (AWS open elevation tiles). Weather becomes extruded columns
    whose height is how close conditions are to the No Travel threshold, animated by the same slider.
 
@@ -197,7 +201,7 @@ npm run dev
 
 ```bash
 cd backend  && ruff check . && pytest --cov           # 174 tests
-cd frontend && npm run lint && npm test && npm run build   # 61 tests, typecheck + build
+cd frontend && npm run lint && npm test && npm run build   # 63 tests, typecheck + build
 ```
 
 * **Backend:**
