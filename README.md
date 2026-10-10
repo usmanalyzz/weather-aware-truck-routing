@@ -31,4 +31,3 @@ cp .env.example .env
 npm run dev                   # http://localhost:5173
 npm test && npm run build
 ```
-# weather-aware-truck-routing
