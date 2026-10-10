@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
+import heatmapJson from './test/fixtures/heatmap.json'
 import { mockFetch, plan, renderWithClient } from './test/utils'
 
 // MapLibre needs WebGL, which jsdom lacks; the map's data logic is tested in geojson.test.ts.
@@ -26,6 +27,7 @@ function api(planResponse: { status?: number; body: unknown } | (() => Promise<{
   return mockFetch((url) => {
     if (url.includes('/geocode/suggest')) return { body: { results: url.includes('q=Chic') ? [chicago] : [denver] } }
     if (url.includes('/trips/plan')) return typeof planResponse === 'function' ? planResponse() : planResponse
+    if (url.includes('/trips/heatmap')) return { body: heatmapJson }
     return { status: 404, body: {} }
   })
 }
@@ -142,5 +144,16 @@ describe('App', () => {
     await planTrip()
 
     expect(await screen.findByText(/no route is confirmed safe/i)).toBeInTheDocument()
+  })
+
+  it('loads the corridor forecast after the plan with the same request', async () => {
+    const fetch = api({ body: plan })
+    renderWithClient(<App />)
+    await planTrip()
+
+    const panel = await screen.findByRole('region', { name: 'Weather forecast overlay' })
+    expect(await within(panel).findByRole('slider', { name: /hours after departure/i })).toBeInTheDocument()
+    const call = fetch.mock.calls.find(([u]) => String(u).includes('/trips/heatmap'))!
+    expect(JSON.parse(String(call[1]!.body))).toEqual(plan.request)
   })
 })

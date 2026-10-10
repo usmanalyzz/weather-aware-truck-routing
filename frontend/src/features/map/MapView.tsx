@@ -10,9 +10,6 @@ import { EMPTY, checkpointFeatures, endpointFeatures, planBounds, routeFeatures 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron'
 const FALLBACK_STYLE_URL = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
 
-/** Layer the heatmap is inserted beneath, so routes and checkpoints always draw on top. */
-export const OVERLAY_BEFORE_LAYER = 'routes-casing'
-
 interface MapViewProps {
   plan: TripPlan | null
   selectedRouteId: string | null
@@ -150,7 +147,10 @@ export function MapView({
     if (!ready || !map) return
     ;(map.getSource('endpoints') as GeoJSONSource).setData(plan ? endpointFeatures(plan) : EMPTY)
     const bounds = plan && planBounds(plan)
-    if (bounds) map.fitBounds(bounds, { padding: { top: 60, bottom: 140, left: 60, right: 60 }, duration: 800, maxZoom: 9 })
+    if (!bounds) return
+    // On large screens the forecast panel floats over the bottom of the map.
+    const overlayBottom = window.matchMedia?.('(min-width: 1024px)').matches ? 210 : 40
+    map.fitBounds(bounds, { padding: { top: 50, bottom: overlayBottom, left: 50, right: 50 }, duration: 800, maxZoom: 9 })
   }, [ready, plan])
 
   // Selection: cheap setData on small collections; layers stay untouched.

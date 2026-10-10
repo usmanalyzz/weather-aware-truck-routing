@@ -91,3 +91,9 @@ separated it from the winner.
 * **Quota caveat:** Open-Meteo's docs don't say whether a multi-location request counts as one call or one per location.
   Assuming the worst case, an uncached heatmap costs about 550 of the free tier's 10,000 daily calls. If the provider throttles,
   only the overlay fails; routes, risk and the recommendation are unaffected.
+* **Rendering:** each grid point is drawn as a soft, blurred disc about 1.3× the grid spacing wide, so neighbouring
+  points blend into a continuous field. Colour is the point's own value, banded by the risk rules (thresholds are
+  served by the API). We chose this over MapLibre's kernel-density `heatmap` layer because density colour depends on
+  how many points overlap, so the same 47 mph wind could show different colours at different zooms or near the
+  corridor edge. The GeoJSON is uploaded once per trip. The slider and metric switch only swap paint expressions
+  (`setPaintProperty`), so dragging the slider triggers no data upload and no React re-render outside the panel.

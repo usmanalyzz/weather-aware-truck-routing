@@ -1,9 +1,11 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 import { useState } from 'react'
 import { ApiError, api } from './api/client'
 import type { TripPlan, TripRequest } from './api/types'
 import { CheckpointPanel } from './features/checkpoints/CheckpointPanel'
 import { CheckpointTable } from './features/checkpoints/CheckpointTable'
+import { ForecastPanel } from './features/forecast/ForecastPanel'
 import { MapView } from './features/map/MapView'
 import { Notices, Recommendation } from './features/routes/Recommendation'
 import { RouteCards } from './features/routes/RouteCards'
@@ -24,6 +26,7 @@ function errorMessage(error: unknown): string {
 export default function App() {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [selectedSeq, setSelectedSeq] = useState<number | null>(null)
+  const [map, setMap] = useState<MapLibreMap | null>(null)
 
   const planMutation = useMutation<TripPlan, unknown, TripRequest>({
     mutationFn: (trip) => api.planTrip(trip),
@@ -36,13 +39,21 @@ export default function App() {
   const selectedRoute = plan?.routes.find((r) => r.id === selectedRouteId)
   const selectedCheckpoint = selectedRoute?.checkpoints.find((c) => c.seq === selectedSeq)
 
+  // Loaded after the plan so routes appear first; the server reuses the cached plan for this request.
+  const heatmapQuery = useQuery({
+    queryKey: ['heatmap', plan?.trip_id, plan?.generated_at],
+    queryFn: ({ signal }) => api.heatmap(plan!.request, signal),
+    enabled: Boolean(plan),
+    staleTime: 10 * 60 * 1000,
+  })
+
   function selectRoute(id: string) {
     if (id !== selectedRouteId) setSelectedSeq(null)
     setSelectedRouteId(id)
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-slate-100 text-slate-900">
+    <div className="flex min-h-dvh flex-col bg-slate-100 text-slate-900 lg:h-dvh">
       <header className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-2.5">
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-600 text-sm font-bold text-white" aria-hidden>
           WR
@@ -53,8 +64,8 @@ export default function App() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside className="order-2 w-full space-y-3 overflow-y-auto p-3 lg:order-1 lg:w-[420px] lg:shrink-0 lg:border-r lg:border-slate-200">
+      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
+        <aside className="order-2 w-full space-y-3 p-3 lg:order-1 lg:overflow-y-auto lg:w-[420px] lg:shrink-0 lg:border-r lg:border-slate-200">
           <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
             <TripForm onSubmit={(trip) => planMutation.mutate(trip)} submitting={planMutation.isPending} />
           </section>
@@ -96,13 +107,15 @@ export default function App() {
           )}
         </aside>
 
-        <main className="relative order-1 h-[55dvh] min-h-[320px] lg:order-2 lg:h-auto lg:flex-1">
+        <main className="relative order-1 flex flex-col lg:order-2 lg:flex-1">
+          <div className="relative h-[55dvh] min-h-[320px] lg:h-auto lg:flex-1">
           <MapView
             plan={plan}
             selectedRouteId={selectedRouteId}
             selectedSeq={selectedSeq}
             onSelectRoute={selectRoute}
             onSelectCheckpoint={setSelectedSeq}
+            onMapReady={setMap}
           >
             {!plan && !planMutation.isPending && (
               <div className="pointer-events-none absolute inset-x-0 top-4 flex justify-center px-4">
@@ -120,6 +133,17 @@ export default function App() {
               </div>
             )}
           </MapView>
+          </div>
+          {plan && (
+              <ForecastPanel
+                map={map}
+                heatmap={heatmapQuery.data}
+                loading={heatmapQuery.isPending}
+                error={heatmapQuery.isError ? errorMessage(heatmapQuery.error) : null}
+                focusTime={selectedCheckpoint?.eta ?? null}
+                tripHours={selectedRoute ? selectedRoute.duration_s / 3600 : null}
+              />
+            )}
         </main>
       </div>
     </div>
