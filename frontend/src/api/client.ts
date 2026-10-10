@@ -41,6 +41,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  /** Fire-and-forget wake-up for free-tier hosts that sleep when idle. */
+  wake: () => fetch(`${BASE_URL}/health`).catch(() => undefined),
+
   planTrip: (trip: TripRequest, signal?: AbortSignal) =>
     request<TripPlan>('/trips/plan', { method: 'POST', body: JSON.stringify(trip), signal }),
 
