@@ -22,3 +22,9 @@ db.sqlite3
 node_modules/
 dist/
 coverage/
+
+# Deploy tooling and logs
+.vercel/
+*.log
+staticfiles/
+.mypy_cache/
