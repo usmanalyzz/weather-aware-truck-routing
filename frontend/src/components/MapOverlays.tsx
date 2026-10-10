@@ -1,4 +1,5 @@
 import { LogoMark } from './Brand'
+import { TruckLoader } from './TruckLoader'
 
 export function ViewToggle({ view3d, onChange }: { view3d: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -69,9 +70,7 @@ export function PlanningOverlay() {
   return (
     <div className="absolute inset-0 z-20 grid place-items-center bg-slate-900/10 backdrop-blur-[2px] lg:left-[450px]" aria-live="polite">
       <div className="glass-blur flex flex-col items-center gap-3 rounded-2xl px-6 py-4">
-        <div className="relative h-2 w-48 overflow-hidden rounded-full bg-slate-200 shadow-inner">
-          <span className="animate-drive absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
-        </div>
+        <TruckLoader tone="light" className="scale-90" />
         <p className="text-sm font-semibold text-slate-800">Planning routes and sampling forecasts…</p>
       </div>
     </div>

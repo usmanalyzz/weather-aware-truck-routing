@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { LogoMark } from './Brand'
+import { TruckLoader } from './TruckLoader'
 
 const MIN_MS = 1400 // long enough to read, short enough not to annoy
 const MAX_MS = 3500 // never block the app on slow tiles or a sleeping API
@@ -68,9 +69,7 @@ export function Splash({ ready }: { ready: boolean }) {
           <span className="rounded-full bg-sky-400/15 px-3 py-1 text-sky-300 ring-1 ring-sky-400/30">React</span>
         </div>
 
-        <div className="mt-8 h-1.5 w-56 overflow-hidden rounded-full bg-white/10">
-          <span className="animate-drive block h-full w-1/3 rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400" />
-        </div>
+        <TruckLoader className="mt-8" />
         <p className="mt-3 h-4 text-xs text-indigo-100/70" aria-live="polite">
           {MESSAGES[message]}
         </p>
