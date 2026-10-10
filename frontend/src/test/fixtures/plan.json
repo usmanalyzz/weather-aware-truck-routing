@@ -1,0 +1,1319 @@
+{
+ "trip_id": "00d2300ca926b163",
+ "generated_at": "2026-10-10T07:08:24.920862Z",
+ "request": {
+  "origin": {
+   "lat": 41.88,
+   "lon": -87.63,
+   "label": "Chicago, IL"
+  },
+  "destination": {
+   "lat": 39.74,
+   "lon": -104.99,
+   "label": "Denver, CO"
+  },
+  "departure_time": "2026-10-11T07:00:00Z",
+  "load_weight_lb": 42000,
+  "sample_interval_mi": 50
+ },
+ "forecast_window": {
+  "start": "2026-10-11T07:00:00Z",
+  "end": "2026-10-13T07:00:00Z",
+  "hours": 48
+ },
+ "recommendation": {
+  "route_id": "r2",
+  "ranking": [
+   "r2",
+   "r3",
+   "r1"
+  ],
+  "all_routes_unsafe": false,
+  "rationale": [
+   "Route B beats Route C: tied on Severe-or-worse miles, High-risk miles, average risk; shorter travel time (16h 00m vs 17h 00m).",
+   "Route B beats Route A: fewer No Travel miles (0.0 mi vs 150.0 mi).",
+   "Route B has 76.4 mi without forecast data; those miles are excluded from its risk totals."
+  ]
+ },
+ "routes": [
+  {
+   "id": "r1",
+   "label": "Route A",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -87.63,
+      41.88
+     ],
+     [
+      -104.99,
+      39.74
+     ]
+    ]
+   },
+   "distance_mi": 919.8,
+   "duration_s": 54000,
+   "departure_time": "2026-10-11T07:00:00Z",
+   "arrival_time": "2026-10-11T22:00:00Z",
+   "summary": {
+    "severe_or_worse_miles": 150.0,
+    "no_travel_miles": 150.0,
+    "severe_miles": 0.0,
+    "high_miles": 0.0,
+    "moderate_miles": 0.0,
+    "low_miles": 769.8,
+    "unknown_miles": 0.0,
+    "avg_risk": 0.65,
+    "max_level": "NO_TRAVEL",
+    "unsafe": true
+   },
+   "checkpoints": [
+    {
+     "seq": 0,
+     "lat": 41.88,
+     "lon": -87.63,
+     "mile": 0.0,
+     "eta": "2026-10-11T07:00:00Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T07:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 1,
+     "lat": 41.7619,
+     "lon": -88.58803,
+     "mile": 50,
+     "eta": "2026-10-11T07:49:18.786060Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T08:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 2,
+     "lat": 41.64401,
+     "lon": -89.54435,
+     "mile": 100,
+     "eta": "2026-10-11T08:38:37.572120Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T09:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 3,
+     "lat": 41.52634,
+     "lon": -90.49897,
+     "mile": 150,
+     "eta": "2026-10-11T09:27:56.358180Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T10:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 4,
+     "lat": 41.40887,
+     "lon": -91.4519,
+     "mile": 200,
+     "eta": "2026-10-11T10:17:15.144240Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T11:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 5,
+     "lat": 41.2916,
+     "lon": -92.40316,
+     "mile": 250,
+     "eta": "2026-10-11T11:06:33.930300Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T12:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 6,
+     "lat": 41.17455,
+     "lon": -93.35275,
+     "mile": 300,
+     "eta": "2026-10-11T11:55:52.716359Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T12:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 7,
+     "lat": 41.05769,
+     "lon": -94.3007,
+     "mile": 350,
+     "eta": "2026-10-11T12:45:11.502419Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T13:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 8,
+     "lat": 40.94104,
+     "lon": -95.247,
+     "mile": 400,
+     "eta": "2026-10-11T13:34:30.288479Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T14:00:00Z",
+      "wind_mph": 47.0,
+      "gust_mph": 62.0,
+      "rain_in_hr": 0.2,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "NO_TRAVEL",
+      "factors": {
+       "wind": "SEVERE",
+       "rain": "MODERATE",
+       "load": "NO_TRAVEL"
+      }
+     }
+    },
+    {
+     "seq": 9,
+     "lat": 40.82459,
+     "lon": -96.19169,
+     "mile": 450,
+     "eta": "2026-10-11T14:23:49.074539Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T15:00:00Z",
+      "wind_mph": 47.0,
+      "gust_mph": 62.0,
+      "rain_in_hr": 0.2,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "NO_TRAVEL",
+      "factors": {
+       "wind": "SEVERE",
+       "rain": "MODERATE",
+       "load": "NO_TRAVEL"
+      }
+     }
+    },
+    {
+     "seq": 10,
+     "lat": 40.70833,
+     "lon": -97.13475,
+     "mile": 500,
+     "eta": "2026-10-11T15:12:27.524211Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T16:00:00Z",
+      "wind_mph": 47.0,
+      "gust_mph": 62.0,
+      "rain_in_hr": 0.2,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "NO_TRAVEL",
+      "factors": {
+       "wind": "SEVERE",
+       "rain": "MODERATE",
+       "load": "NO_TRAVEL"
+      }
+     }
+    },
+    {
+     "seq": 11,
+     "lat": 40.59228,
+     "lon": -98.07622,
+     "mile": 550,
+     "eta": "2026-10-11T16:01:00.192354Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T17:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 12,
+     "lat": 40.47641,
+     "lon": -99.0161,
+     "mile": 600,
+     "eta": "2026-10-11T16:49:32.860496Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T17:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 13,
+     "lat": 40.36075,
+     "lon": -99.9544,
+     "mile": 650,
+     "eta": "2026-10-11T17:38:05.528639Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T18:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 14,
+     "lat": 40.24528,
+     "lon": -100.89113,
+     "mile": 700,
+     "eta": "2026-10-11T18:26:38.196781Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T19:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 15,
+     "lat": 40.12999,
+     "lon": -101.82631,
+     "mile": 750,
+     "eta": "2026-10-11T19:15:10.864924Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T20:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 16,
+     "lat": 40.0149,
+     "lon": -102.75995,
+     "mile": 800,
+     "eta": "2026-10-11T20:03:43.533066Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T21:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 17,
+     "lat": 39.9,
+     "lon": -103.69205,
+     "mile": 850,
+     "eta": "2026-10-11T20:52:16.201209Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T21:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 18,
+     "lat": 39.78528,
+     "lon": -104.62264,
+     "mile": 900,
+     "eta": "2026-10-11T21:40:48.869351Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T22:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 19,
+     "lat": 39.74,
+     "lon": -104.99,
+     "mile": 919.76,
+     "eta": "2026-10-11T22:00:00Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T22:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    }
+   ],
+   "notices": []
+  },
+  {
+   "id": "r2",
+   "label": "Route B",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -87.63,
+      41.88
+     ],
+     [
+      -96.0,
+      43.0
+     ],
+     [
+      -104.99,
+      39.74
+     ]
+    ]
+   },
+   "distance_mi": 951.4,
+   "duration_s": 57600,
+   "departure_time": "2026-10-11T07:00:00Z",
+   "arrival_time": "2026-10-11T23:00:00Z",
+   "summary": {
+    "severe_or_worse_miles": 0.0,
+    "no_travel_miles": 0.0,
+    "severe_miles": 0.0,
+    "high_miles": 0.0,
+    "moderate_miles": 0.0,
+    "low_miles": 875.0,
+    "unknown_miles": 76.4,
+    "avg_risk": 0.0,
+    "max_level": "LOW",
+    "unsafe": false
+   },
+   "checkpoints": [
+    {
+     "seq": 0,
+     "lat": 41.88,
+     "lon": -87.63,
+     "mile": 0.0,
+     "eta": "2026-10-11T07:00:00Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T07:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 1,
+     "lat": 42.00813,
+     "lon": -88.58755,
+     "mile": 50,
+     "eta": "2026-10-11T07:55:19.979523Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T08:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 2,
+     "lat": 42.13651,
+     "lon": -89.54697,
+     "mile": 100,
+     "eta": "2026-10-11T08:50:39.959045Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T09:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 3,
+     "lat": 42.26515,
+     "lon": -90.50828,
+     "mile": 150,
+     "eta": "2026-10-11T09:45:59.938568Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T10:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 4,
+     "lat": 42.39404,
+     "lon": -91.4715,
+     "mile": 200,
+     "eta": "2026-10-11T10:41:19.918091Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T11:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 5,
+     "lat": 42.52318,
+     "lon": -92.43663,
+     "mile": 250,
+     "eta": "2026-10-11T11:36:39.897613Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T12:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 6,
+     "lat": 42.65259,
+     "lon": -93.4037,
+     "mile": 300,
+     "eta": "2026-10-11T12:31:59.877136Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T13:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 7,
+     "lat": 42.78225,
+     "lon": -94.37272,
+     "mile": 350,
+     "eta": "2026-10-11T13:27:19.856659Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T14:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 8,
+     "lat": 42.91218,
+     "lon": -95.3437,
+     "mile": 400,
+     "eta": "2026-10-11T14:22:39.836181Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T15:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 9,
+     "lat": 42.89552,
+     "lon": -96.28813,
+     "mile": 450,
+     "eta": "2026-10-11T15:15:04.747783Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T16:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 10,
+     "lat": 42.57516,
+     "lon": -97.17157,
+     "mile": 500,
+     "eta": "2026-10-11T16:01:26.467017Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T17:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 11,
+     "lat": 42.25612,
+     "lon": -98.05138,
+     "mile": 550,
+     "eta": "2026-10-11T16:47:48.186251Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T17:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 12,
+     "lat": 41.93838,
+     "lon": -98.92761,
+     "mile": 600,
+     "eta": "2026-10-11T17:34:09.905486Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T18:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 13,
+     "lat": 41.62191,
+     "lon": -99.80033,
+     "mile": 650,
+     "eta": "2026-10-11T18:20:31.624720Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T19:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 14,
+     "lat": 41.30669,
+     "lon": -100.66959,
+     "mile": 700,
+     "eta": "2026-10-11T19:06:53.343954Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T20:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 15,
+     "lat": 40.9927,
+     "lon": -101.53546,
+     "mile": 750,
+     "eta": "2026-10-11T19:53:15.063188Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T20:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 16,
+     "lat": 40.67993,
+     "lon": -102.39799,
+     "mile": 800,
+     "eta": "2026-10-11T20:39:36.782422Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T21:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 17,
+     "lat": 40.36834,
+     "lon": -103.25724,
+     "mile": 850,
+     "eta": "2026-10-11T21:25:58.501657Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T22:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 18,
+     "lat": 40.05793,
+     "lon": -104.11326,
+     "mile": 900,
+     "eta": "2026-10-11T22:12:20.220891Z",
+     "weather": {
+      "status": "unavailable"
+     },
+     "risk": {
+      "level": "UNKNOWN",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 19,
+     "lat": 39.74866,
+     "lon": -104.96611,
+     "mile": 950,
+     "eta": "2026-10-11T22:58:41.940125Z",
+     "weather": {
+      "status": "unavailable"
+     },
+     "risk": {
+      "level": "UNKNOWN",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 20,
+     "lat": 39.74,
+     "lon": -104.99,
+     "mile": 951.4,
+     "eta": "2026-10-11T23:00:00Z",
+     "weather": {
+      "status": "unavailable"
+     },
+     "risk": {
+      "level": "UNKNOWN",
+      "factors": {}
+     }
+    }
+   ],
+   "notices": []
+  },
+  {
+   "id": "r3",
+   "label": "Route C",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -87.63,
+      41.88
+     ],
+     [
+      -95.0,
+      38.5
+     ],
+     [
+      -104.99,
+      39.74
+     ]
+    ]
+   },
+   "distance_mi": 996.0,
+   "duration_s": 61200,
+   "departure_time": "2026-10-11T07:00:00Z",
+   "arrival_time": "2026-10-12T00:00:00Z",
+   "summary": {
+    "severe_or_worse_miles": 0.0,
+    "no_travel_miles": 0.0,
+    "severe_miles": 0.0,
+    "high_miles": 0.0,
+    "moderate_miles": 0.0,
+    "low_miles": 875.0,
+    "unknown_miles": 121.0,
+    "avg_risk": 0.0,
+    "max_level": "LOW",
+    "unsafe": false
+   },
+   "checkpoints": [
+    {
+     "seq": 0,
+     "lat": 41.88,
+     "lon": -87.63,
+     "mile": 0.0,
+     "eta": "2026-10-11T07:00:00Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T07:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 1,
+     "lat": 41.50128,
+     "lon": -88.45578,
+     "mile": 50,
+     "eta": "2026-10-11T07:56:12.453517Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T08:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 2,
+     "lat": 41.12417,
+     "lon": -89.27806,
+     "mile": 100,
+     "eta": "2026-10-11T08:52:24.907034Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T09:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 3,
+     "lat": 40.74863,
+     "lon": -90.09691,
+     "mile": 150,
+     "eta": "2026-10-11T09:48:37.360551Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T10:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 4,
+     "lat": 40.37464,
+     "lon": -90.91239,
+     "mile": 200,
+     "eta": "2026-10-11T10:44:49.814068Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T11:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 5,
+     "lat": 40.00217,
+     "lon": -91.72456,
+     "mile": 250,
+     "eta": "2026-10-11T11:41:02.267585Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T12:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 6,
+     "lat": 39.63118,
+     "lon": -92.53349,
+     "mile": 300,
+     "eta": "2026-10-11T12:37:14.721102Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T13:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 7,
+     "lat": 39.26166,
+     "lon": -93.33922,
+     "mile": 350,
+     "eta": "2026-10-11T13:33:27.174618Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T14:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 8,
+     "lat": 38.89358,
+     "lon": -94.14182,
+     "mile": 400,
+     "eta": "2026-10-11T14:29:39.628135Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T15:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 9,
+     "lat": 38.5269,
+     "lon": -94.94134,
+     "mile": 450,
+     "eta": "2026-10-11T15:25:52.081652Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T16:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 10,
+     "lat": 38.6051,
+     "lon": -95.84673,
+     "mile": 500,
+     "eta": "2026-10-11T16:13:33.870636Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T17:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 11,
+     "lat": 38.7187,
+     "lon": -96.762,
+     "mile": 550,
+     "eta": "2026-10-11T17:00:35.140598Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T18:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 12,
+     "lat": 38.83249,
+     "lon": -97.67869,
+     "mile": 600,
+     "eta": "2026-10-11T17:47:36.410560Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T18:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 13,
+     "lat": 38.94645,
+     "lon": -98.59681,
+     "mile": 650,
+     "eta": "2026-10-11T18:34:37.680522Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T19:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 14,
+     "lat": 39.06059,
+     "lon": -99.51637,
+     "mile": 700,
+     "eta": "2026-10-11T19:21:38.950485Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T20:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 15,
+     "lat": 39.17491,
+     "lon": -100.43739,
+     "mile": 750,
+     "eta": "2026-10-11T20:08:40.220447Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T21:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 16,
+     "lat": 39.28941,
+     "lon": -101.35987,
+     "mile": 800,
+     "eta": "2026-10-11T20:55:41.490409Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T21:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 17,
+     "lat": 39.4041,
+     "lon": -102.28382,
+     "mile": 850,
+     "eta": "2026-10-11T21:42:42.760371Z",
+     "weather": {
+      "status": "ok",
+      "time": "2026-10-11T22:00:00Z",
+      "wind_mph": 8.0,
+      "gust_mph": 15.0,
+      "rain_in_hr": 0.0,
+      "snow_in_hr": 0.0
+     },
+     "risk": {
+      "level": "LOW",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 18,
+     "lat": 39.51897,
+     "lon": -103.20925,
+     "mile": 900,
+     "eta": "2026-10-11T22:29:44.030333Z",
+     "weather": {
+      "status": "unavailable"
+     },
+     "risk": {
+      "level": "UNKNOWN",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 19,
+     "lat": 39.63402,
+     "lon": -104.13618,
+     "mile": 950,
+     "eta": "2026-10-11T23:16:45.300295Z",
+     "weather": {
+      "status": "unavailable"
+     },
+     "risk": {
+      "level": "UNKNOWN",
+      "factors": {}
+     }
+    },
+    {
+     "seq": 20,
+     "lat": 39.74,
+     "lon": -104.99,
+     "mile": 995.98,
+     "eta": "2026-10-12T00:00:00Z",
+     "weather": {
+      "status": "unavailable"
+     },
+     "risk": {
+      "level": "UNKNOWN",
+      "factors": {}
+     }
+    }
+   ],
+   "notices": []
+  }
+ ],
+ "notices": [
+  "6 checkpoint(s) fall outside the available forecast and are marked Unknown."
+ ]
+}
