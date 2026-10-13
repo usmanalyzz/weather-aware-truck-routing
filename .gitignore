@@ -1,11 +1,8 @@
 # IDE
 .idea/
-.vscode/
 .DS_Store
 
 # Secrets
-.env
-.env.*
 !.env.example
 
 # Python
@@ -28,3 +25,7 @@ coverage/
 *.log
 staticfiles/
 .mypy_cache/
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+config.bat
